@@ -435,3 +435,34 @@ class PracticeScreen(Screen):
 
 class Root(ScreenManager):
     pass
+
+class VisibleSpokenLanguageApp(App):
+    header_text = StringProperty("Visible Spoken Language - Prototype")
+    statue_text = StringProperty("Ready")
+    _history = []
+
+    def build(self):
+        self.title = "Visible Spoken Language - Prototype"
+        root = Builder.load_string(KV)
+
+        # defult in welcome page
+        root.current = "welcome"
+        self._history.append("welcome")
+        return root
+
+    def goto(self, screen_name: str):
+        sm: ScreenManager = self.root
+        if sm.current != screen_name:
+            self._history.append(screen_name)
+            sm.current = screen_name
+
+    def back(self):
+        if len(self._history) > 1:
+            self._history.pop() # current
+            target = self._history.pop() # previous
+            self.goto(target)
+        else:
+            self.root.current = "welcome"
+
+if __name__ == "__main__":
+    VisibleSpokenLanguageApp().run()
