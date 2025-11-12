@@ -27,12 +27,14 @@ KV = r'''
     padding: dp(12), 0
     spacing: dp(12)
     canvas.before:
-        Color: rgba: 0.11, 0.11, 0.13, 1
-        Rectangle: pos: self.pos; size: self.size
+        Color: 
+            rgba: 0.11,0.11,0.13,1
+        Rectangle: 
+            pos: self.pos;
+            size: self.size
     Label:
         text: app.header_text
         font_size: "18sp"
-        bold: True
         color: 1,1,1,1
         halign: "left"; valign: "middle"; text_size: self.size
     Widget:
@@ -49,8 +51,11 @@ KV = r'''
     height: dp(32)
     padding: dp(12), 0
     canvas.before:
-        Color: rgba: 0.11, 0.11, 0.13, 1
-        Rectangle: pos: self.pos; size: self.size
+        Color:
+            rgba: 0.11, 0.11, 0.13, 1
+        Rectangle:
+            pos: self.pos;
+            size: self.size
     Label:
         text: "Mock UI - Kivy"
         color: 0.7,0.75,0.8,1
@@ -66,13 +71,15 @@ KV = r'''
             padding: dp(40)
             spacing: dp(20)
             canvas.before:
-                Color: rgba: 0.06,0.04,0.07,1
-                Rectangle: pos: self.pos; size: self.size
+                Color:
+                    rgba: 0.06,0.04,0.07,1
+                Rectangle:
+                    pos: self.pos;
+                    size: self.size
                 
             Label:
                 text: "Visible Spoken Language"
                 font_size: "36sp"
-                bold: True
                 color: 1,1,1,1
                 size_hint_y: None
                 height: dp(100)
@@ -81,7 +88,9 @@ KV = r'''
                 text: "让语言学习更具视觉化：通过语音和面部识别，\\n在手机上训练发音、声调与口型。"
                 font_size: "18sp"
                 color: 0.9,0.92,0.96,1
-                halign: "center"; valign: "middle"; text_size: self.size
+                halign: "center";
+                valign: "middle";
+                text_size: self.size
             
             Widget:
             
@@ -112,11 +121,13 @@ KV = r'''
         padding: dp(28)
         spacing: dp(16)
         canvas.before:
-            Color: rgba: 0.06,0.06,0.07,1
-            Rectangle: pos: self.pos; size: self.size
+            Color:
+                rgba: 0.06,0.06,0.07,1
+            Rectangle:
+                pos: self.pos;
+                size: self.size
         Label:
             text: "功能介绍/Functions Intro"
-            bold: True
             font_size: "28sp"
             color: 1,1,1,1
             size_hint_y: None
@@ -128,7 +139,9 @@ KV = r'''
                 "学习单元：支持按音节与声调组织\\n" + \
                 "进度记录：后续可按成绩与曲线回放"
             color: 0.9,0.92,0.96,1
-            halign: "left"; valign: "top"; text_size: self.size
+            halign: "left";
+            valign: "top";
+            text_size: self.size
         Widget:
         BoxLayout:
             size_hint_y: None
@@ -151,8 +164,11 @@ KV = r'''
             padding: dp(24)
             spacing: dp(24)
             canvas.before:
-                Color: rgba: 0.06,0.06,0.07,1
-                Rectangle: pos: self.pos; size: self.size
+                Color:
+                    rgba: 0.06,0.06,0.07,1
+                Rectangle:
+                    pos: self.pos;
+                    size: self.size
             BoxLayout:
                 orientation: "vertical"
                 spacing: dp(16)
@@ -186,8 +202,11 @@ KV = r'''
             padding: dp(16)
             spacing: dp(16)
             canvas.before:
-                Color: rgba: 0.06,0.06,0.07,1
-                Rectangle: pos: self.pos; size: self.size
+                Color:
+                    rgba: 0.06,0.06,0.07,1
+                Rectangle: 
+                    pos: self.pos;
+                    size: self.size
                 
             # Left: Camera placeholder
             BoxLayout:
@@ -195,8 +214,11 @@ KV = r'''
                 size_hint_x: 0.46
                 spacing: dp(10)
                 canvas.before:
-                    Color: rgba: 0.12,0.12,0.14,1
-                    Rectangle: pos: self.pos; size: self.size
+                    Color:
+                        rgba: 0.12,0.12,0.14,1
+                    Rectangle:
+                        pos: self.pos;
+                        size: self.size
                 Label:
                     text: "Camera Preview(placeholder)"
                     color: 1,1,1,1
@@ -205,9 +227,13 @@ KV = r'''
                 Widget:
                     id: camera_box
                     canvas:
-                        Color: rgba: 0.15,0.15,0.18,1
-                        Rectangle: pos: self.pos; size: self.size
-                        Color: rgba: 0.35,0.35,0.45,1
+                        Color:
+                            rgba: 0.15,0.15,0.18,1
+                        Rectangle:
+                            pos: self.pos;
+                            size: self.size
+                        Color:
+                            rgba: 0.35,0.35,0.45,1
                         Line: rectangle: (*self.pos, *self.size); width: 1.2
                 BoxLayout:
                     size_hint_y: None
@@ -232,8 +258,11 @@ KV = r'''
                 size_hint_x: 0.54
                 spacing: dp(10)
                 canvas.before:
-                    Color: rgba: 0.12,0.12,0.14,1
-                    Rectangle: pos: self.pos; size: self.size
+                    Color:
+                        rgba: 0.12,0.12,0.14,1
+                    Rectangle:
+                        pos: self.pos;
+                        size: self.size
                     
                 BoxLayout:
                     size_hint_y: None
@@ -285,13 +314,19 @@ KV = r'''
     def on_target_points(self, *args): self.canvas.ask_update()
     def on_live_points(self, *args): self.canvas.ask_update()
     canvas:
-        Color: rgba: 0.08,0.08,0.1,1
-        Rectangle: pos: self.pos; size: self.size
-        Color: rgba: 0.25,0.25,0.3,1
+        Color: 
+            rgba: 0.08,0.08,0.1,1
+        Rectangle:
+            pos: self.pos;
+            size: self.size
+        Color: 
+            rgba: 0.25,0.25,0.3,1
         Line: rectangle: (*self.pos, *self.size); width: 1.2
-        Color: rgba: 0.6,0.6,0.75,1
+        Color: 
+            rgba: 0.6,0.6,0.75,1
         Line: points: self.target_points; width: 1.6; cap: "round"; joint: "round"
-        Color: rgba: 0.95,0.995,0.95,1
+        Color: 
+            rgba: 0.95,0.995,0.95,1
         Line: points: self.live_points; width: 2.0; cap: "round"; joint: "round"
         
 ScreenManager:
