@@ -1,6 +1,7 @@
 # coding: UTF-8
 # Visible Spoken Language ---- UI ---- Welcome and Info
 # using kivy
+from tkinter import Widget
 
 from kivy.config import Config
 Config.set('graphics', 'width', '1100')
@@ -30,13 +31,15 @@ KV = r'''
         Color: 
             rgba: 0.11,0.11,0.13,1
         Rectangle: 
-            pos: self.pos;
+            pos: self.pos
             size: self.size
     Label:
         text: app.header_text
         font_size: "18sp"
         color: 1,1,1,1
-        halign: "left"; valign: "middle"; text_size: self.size
+        halign: "left"
+        valign: "middle"
+        text_size: self.size
     Widget:
     Label:
         text: app.status_text
@@ -44,7 +47,9 @@ KV = r'''
         font_size: "14sp"
         size_hint_x: None
         width: dp(280)
-        halign: "right"; valign: "middle"; text_size: self.size
+        halign: "right"
+        valign: "middle"
+        text_size: self.size
 
 <Footer@BoxLayout>:
     size_hint_y: None
@@ -54,7 +59,7 @@ KV = r'''
         Color:
             rgba: 0.11, 0.11, 0.13, 1
         Rectangle:
-            pos: self.pos;
+            pos: self.pos
             size: self.size
     Label:
         text: "Mock UI - Kivy"
@@ -74,7 +79,7 @@ KV = r'''
                 Color:
                     rgba: 0.06,0.04,0.07,1
                 Rectangle:
-                    pos: self.pos;
+                    pos: self.pos
                     size: self.size
                 
             Label:
@@ -88,8 +93,8 @@ KV = r'''
                 text: "让语言学习更具视觉化：通过语音和面部识别，\\n在手机上训练发音、声调与口型。"
                 font_size: "18sp"
                 color: 0.9,0.92,0.96,1
-                halign: "center";
-                valign: "middle";
+                halign: "center"
+                valign: "middle"
                 text_size: self.size
             
             Widget:
@@ -124,7 +129,7 @@ KV = r'''
             Color:
                 rgba: 0.06,0.06,0.07,1
             Rectangle:
-                pos: self.pos;
+                pos: self.pos
                 size: self.size
         Label:
             text: "功能介绍/Functions Intro"
@@ -139,8 +144,8 @@ KV = r'''
                 "学习单元：支持按音节与声调组织\\n" + \
                 "进度记录：后续可按成绩与曲线回放"
             color: 0.9,0.92,0.96,1
-            halign: "left";
-            valign: "top";
+            halign: "left"
+            valign: "top"
             text_size: self.size
         Widget:
         BoxLayout:
@@ -167,7 +172,7 @@ KV = r'''
                 Color:
                     rgba: 0.06,0.06,0.07,1
                 Rectangle:
-                    pos: self.pos;
+                    pos: self.pos
                     size: self.size
             BoxLayout:
                 orientation: "vertical"
@@ -205,7 +210,7 @@ KV = r'''
                 Color:
                     rgba: 0.06,0.06,0.07,1
                 Rectangle: 
-                    pos: self.pos;
+                    pos: self.pos
                     size: self.size
                 
             # Left: Camera placeholder
@@ -217,7 +222,7 @@ KV = r'''
                     Color:
                         rgba: 0.12,0.12,0.14,1
                     Rectangle:
-                        pos: self.pos;
+                        pos: self.pos
                         size: self.size
                 Label:
                     text: "Camera Preview(placeholder)"
@@ -230,11 +235,13 @@ KV = r'''
                         Color:
                             rgba: 0.15,0.15,0.18,1
                         Rectangle:
-                            pos: self.pos;
+                            pos: self.pos
                             size: self.size
                         Color:
                             rgba: 0.35,0.35,0.45,1
-                        Line: rectangle: (*self.pos, *self.size); width: 1.2
+                        Line:
+                            rectangle: (*self.pos, *self.size)
+                            width: 1.2
                 BoxLayout:
                     size_hint_y: None
                     height: dp(56)
@@ -261,7 +268,7 @@ KV = r'''
                     Color:
                         rgba: 0.12,0.12,0.14,1
                     Rectangle:
-                        pos: self.pos;
+                        pos: self.pos
                         size: self.size
                     
                 BoxLayout:
@@ -306,28 +313,30 @@ KV = r'''
                         on_release: root.reset()
                         
 <PitchPanel@Widget>:
-    # Draw rolling live pitch and the target curve
-    target_points: []
-    live_points: []
-    def on_size(self, *args): self.canvas.ask_update()
-    def on_pos(self, *args): self.canvas.ask_update()
-    def on_target_points(self, *args): self.canvas.ask_update()
-    def on_live_points(self, *args): self.canvas.ask_update()
     canvas:
-        Color: 
-            rgba: 0.08,0.08,0.1,1
+        Color:
+            rgba: 0.08, 0.08, 0.1, 1
         Rectangle:
-            pos: self.pos;
+            pos: self.pos
             size: self.size
-        Color: 
-            rgba: 0.25,0.25,0.3,1
-        Line: rectangle: (*self.pos, *self.size); width: 1.2
-        Color: 
-            rgba: 0.6,0.6,0.75,1
-        Line: points: self.target_points; width: 1.6; cap: "round"; joint: "round"
-        Color: 
-            rgba: 0.95,0.995,0.95,1
-        Line: points: self.live_points; width: 2.0; cap: "round"; joint: "round"
+        
+        # Target Line  
+        Color:
+            rgba: 0.6, 0.6, 0.75, 1
+        Line:
+            points: self.target_points
+            width: 1.6
+            cap: "round"
+            joint: "round"
+        
+        # Live line
+        Color:
+            rgba: 0.95, 0.995, 0.95, 1
+        Line:
+            points: self.live_points
+            width: 2.0
+            cap: "round"
+            joint: "round"
         
 ScreenManager:
     WelcomeScreen:
@@ -335,6 +344,16 @@ ScreenManager:
     HomeScreen:
     PracticeScreen:
 '''
+
+class PitchPanel(Widget):
+    # Draw rolling live pitch and the target curve
+    target_points: []
+    live_points: []
+
+    def on_size(self, *args): self.canvas.ask_update()
+    def on_pos(self, *args): self.canvas.ask_update()
+    def on_target_points(self, *args): self.canvas.ask_update()
+    def on_live_points(self, *args): self.canvas.ask_update()
 
 class WelcomeScreen(Screen):
     pass
@@ -473,7 +492,7 @@ class Root(ScreenManager):
 
 class VisibleSpokenLanguageApp(App):
     header_text = StringProperty("Visible Spoken Language - Prototype")
-    statue_text = StringProperty("Ready")
+    status_text = StringProperty("Ready")
     _history = []
 
     def build(self):
