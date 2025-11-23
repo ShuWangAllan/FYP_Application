@@ -1,7 +1,4 @@
 # -*- coding: utf-8 -*-
-# 简化版 Visible Spoken Language UI
-# 只包含：Welcome / Info / Practice
-# 没有 PitchPanel，自然也没有 target_points 报错
 
 from kivy.config import Config
 Config.set('graphics', 'width', '1100')
@@ -11,6 +8,16 @@ from kivy.app import App
 from kivy.lang import Builder
 from kivy.properties import StringProperty, BooleanProperty
 from kivy.uix.screenmanager import ScreenManager, Screen
+
+# 字体相关
+from kivy.core.text import LabelBase
+from kivy.resources import resource_add_path
+resource_add_path(r"C:/Windows/Fonts")
+LabelBase.register(
+    name="CN",
+    fn_regular = "msyh.ttc"
+)
+
 
 KV = r"""
 #:import dp kivy.metrics.dp
