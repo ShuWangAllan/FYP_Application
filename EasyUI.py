@@ -21,6 +21,11 @@ LabelBase.register(
 
 KV = r"""
 #:import dp kivy.metrics.dp
+<CNLabel@Label>:
+    font_name: "CN"
+    
+<CNButton@Button>:
+    font_name: "CN"
 
 <Header@BoxLayout>:
     size_hint_y: None
@@ -33,7 +38,7 @@ KV = r"""
         Rectangle:
             pos: self.pos
             size: self.size
-    Label:
+    CNLabel:
         text: app.header_text
         font_size: "18sp"
         color: 1, 1, 1, 1
@@ -41,7 +46,7 @@ KV = r"""
         valign: "middle"
         text_size: self.size
     Widget:
-    Label:
+    CNLabel:
         text: app.status_text
         color: 0.8, 0.85, 0.9, 1
         font_size: "14sp"
@@ -61,11 +66,11 @@ KV = r"""
         Rectangle:
             pos: self.pos
             size: self.size
-    Label:
+    CNLabel:
         text: "Mock UI · Kivy"
         color: 0.7, 0.75, 0.8, 1
 
-# ---------------- Welcome 启动页 ----------------
+# ---------------- Welcome ----------------
 <WelcomeScreen>:
     name: "welcome"
     BoxLayout:
@@ -82,14 +87,14 @@ KV = r"""
                     pos: self.pos
                     size: self.size
 
-            Label:
+            CNLabel:
                 text: "Visible Spoken Language"
                 font_size: "36sp"
                 color: 1, 1, 1, 1
                 size_hint_y: None
                 height: dp(100)
 
-            Label:
+            CNLabel:
                 text: "让语言学习更具视觉化：通过语音与面部识别，\\n在手机上训练发音、声调与口型。"
                 font_size: "18sp"
                 color: 0.9, 0.92, 0.96, 1
@@ -104,15 +109,15 @@ KV = r"""
                 height: dp(210)
                 orientation: "vertical"
                 spacing: dp(14)
-                Button:
+                CNButton:
                     text: "开始学习"
                     font_size: "22sp"
                     on_release: app.goto("practice")
-                Button:
+                CNButton:
                     text: "功能介绍"
                     font_size: "22sp"
                     on_release: app.goto("info")
-                Button:
+                CNButton:
                     text: "退出"
                     font_size: "22sp"
                     on_release: app.stop()
@@ -120,7 +125,7 @@ KV = r"""
             Widget:
         Footer:
 
-# ---------------- Info 功能介绍页 ----------------
+# ---------------- Info ----------------
 <InfoScreen>:
     name: "info"
     BoxLayout:
@@ -136,13 +141,13 @@ KV = r"""
                 Rectangle:
                     pos: self.pos
                     size: self.size
-            Label:
+            CNLabel:
                 text: "功能介绍"
                 font_size: "28sp"
                 color: 1, 1, 1, 1
                 size_hint_y: None
                 height: dp(40)
-            Label:
+            CNLabel:
                 text:
                     "• 发音练习：实时显示音高曲线与目标四声轮廓的偏差（后续接入）\\n" + \
                     "• 口型提示：相机捕捉面部关键点，给出口形反馈（后续接入）\\n" + \
@@ -157,15 +162,15 @@ KV = r"""
                 size_hint_y: None
                 height: dp(60)
                 spacing: dp(12)
-                Button:
+                CNButton:
                     text: "返回"
                     on_release: app.back()
-                Button:
+                CNButton:
                     text: "去练习"
                     on_release: app.goto("practice")
         Footer:
 
-# Practice
+# ---------------- Practice ----------------
 <PracticeScreen>:
     name: "practice"
     BoxLayout:
@@ -181,7 +186,6 @@ KV = r"""
                     pos: self.pos
                     size: self.size
 
-            # 左侧：摄像头占位
             BoxLayout:
                 orientation: "vertical"
                 size_hint_x: 0.46
@@ -192,11 +196,12 @@ KV = r"""
                     Rectangle:
                         pos: self.pos
                         size: self.size
-                Label:
+                CNLabel:
                     text: "Camera Preview (占位)"
                     color: 1, 1, 1, 1
                     size_hint_y: None
                     height: dp(30)
+
                 BoxLayout:
                     id: camera_box
                     canvas.before:
@@ -205,6 +210,7 @@ KV = r"""
                         Rectangle:
                             pos: self.pos
                             size: self.size
+
                 BoxLayout:
                     size_hint_y: None
                     height: dp(56)
@@ -222,7 +228,6 @@ KV = r"""
                         text: "Start"
                         on_state: root.on_toggle(self.state)
 
-            # 右侧：反馈 + 图表占位
             BoxLayout:
                 orientation: "vertical"
                 size_hint_x: 0.54
@@ -239,12 +244,12 @@ KV = r"""
                     height: dp(64)
                     padding: dp(10)
                     spacing: dp(10)
-                    Label:
+                    CNLabel:
                         text: "Feedback:"
                         color: 1, 1, 1, 1
                         size_hint_x: None
                         width: dp(90)
-                    Label:
+                    CNLabel:
                         text: root.feedback_text
                         color: 0.3, 0.9, 0.5, 1
                         font_size: "20sp"
@@ -253,11 +258,12 @@ KV = r"""
                     orientation: "vertical"
                     padding: dp(10)
                     spacing: dp(8)
-                    Label:
+                    CNLabel:
                         text: "Pitch Contour (占位示意)"
                         color: 0.9, 0.92, 0.96, 1
                         size_hint_y: None
                         height: dp(24)
+
                     BoxLayout:
                         id: graph_box
                         canvas.before:
@@ -266,7 +272,7 @@ KV = r"""
                             Rectangle:
                                 pos: self.pos
                                 size: self.size
-                        Label:
+                        CNLabel:
                             text: "将来这里画音高曲线 / 目标曲线"
                             color: 0.8, 0.82, 0.9, 1
 
@@ -274,10 +280,10 @@ KV = r"""
                     size_hint_y: None
                     height: dp(56)
                     spacing: dp(12)
-                    Button:
+                    CNButton:
                         text: "返回"
                         on_release: app.back()
-                    Button:
+                    CNButton:
                         text: "重置"
                         on_release: root.reset()
 
