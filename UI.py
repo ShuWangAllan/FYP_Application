@@ -2,7 +2,7 @@
 # Visible Spoken Language ---- UI ---- Welcome and Info
 # using kivy
 from tkinter import Widget
-
+from kivy.properties import ListProperty
 from kivy.config import Config
 Config.set('graphics', 'width', '1100')
 Config.set('graphics', 'height', '700')
@@ -347,8 +347,8 @@ ScreenManager:
 
 class PitchPanel(Widget):
     # Draw rolling live pitch and the target curve
-    target_points: []
-    live_points: []
+    target_points = ListProperty([])
+    live_points = ListProperty([])
 
     def on_size(self, *args): self.canvas.ask_update()
     def on_pos(self, *args): self.canvas.ask_update()
