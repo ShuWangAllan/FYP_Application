@@ -12,11 +12,14 @@ from kivy.uix.screenmanager import ScreenManager, Screen
 # 字体相关
 from kivy.core.text import LabelBase
 from kivy.resources import resource_add_path
-resource_add_path(r"C:/Windows/Fonts")
-LabelBase.register(
-    name="CN",
-    fn_regular = "msyh.ttc"
-)
+import os
+
+BASE_DIR = os.path.dirname(__file__)
+FONT_DIR = os.path.join(BASE_DIR, 'Assets', 'fonts')
+
+resource_add_path(FONT_DIR)
+
+LabelBase.register(name= "CN", fn_regular= "msyh.ttc")
 
 
 KV = r"""
