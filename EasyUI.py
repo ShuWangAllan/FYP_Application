@@ -15,11 +15,24 @@ from kivy.resources import resource_add_path
 import os
 
 BASE_DIR = os.path.dirname(__file__)
-FONT_DIR = os.path.join(BASE_DIR, 'Assets', 'fonts')
 
-resource_add_path(FONT_DIR)
+def setup_cn_font():
+    candidates = [
+        os.path.join(BASE_DIR, "Assets", "fonts", "msyh.ttc"),
+        os.path.join(BASE_DIR, "Assets", "fonts", "msyh.ttc"),
+    ]
 
-LabelBase.register(name= "CN", fn_regular= "msyh.ttc")
+    for font_path in candidates:
+        if os.path.exists(font_path):
+            resource_add_path(os.path.dirname(font_path))
+
+            LabelBase.register(name= "CN", fn_regular = font_path)
+            print("[FONT] Loaded:", font_path)
+            return
+
+    print("[FONT] msyh.ttc not found, fallback to default font")
+
+setup_cn_font()
 
 
 KV = r"""
