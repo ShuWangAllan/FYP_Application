@@ -13,4 +13,9 @@ if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET vsl_asr PROPERTY CXX_STANDARD 20)
 endif()
 
+if (MSVC)
+  target_compile_options(vsl_asr PRIVATE /utf-8)
+endif()
+
+
 # TODO: 如有需要，请添加测试并安装目标。

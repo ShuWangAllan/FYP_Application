@@ -7,10 +7,15 @@
 #include <vector>
 #include <fstream>
 #include <sstream>
+#include <iostream>
 
 #include "whisper.h"
 
-using namespace std;
+namespace
+{
+	std::mutex g_asr_mutex;
+	whisper_context* g_ctx = nullptr;
+}
 
 std::string vsl_version()
 {
@@ -51,11 +56,14 @@ std::string vsl_asr_transcribe(const std::vector<float>& audio_pcm)
 		return "";
 	}
 
-	whisper_full_params params = whisper_fully_default_params(WHISPER_SAMPLING_GREEDY);
+	// Default params
+	whisper_full_params params = whisper_full_default_params(WHISPER_SAMPLING_GREEDY);
 
 	params.print_progress = false;
 	params.print_realtime = false;
 	params.translate = false;
+
+	// Using Chinese by default
 	params.language = "zh";
 
 	int ret = whisper_full(g_ctx, params, audio_pcm.data(), static_cast<int>(audio_pcm.size()));
@@ -68,13 +76,42 @@ std::string vsl_asr_transcribe(const std::vector<float>& audio_pcm)
 
 	// load result
 	std::string result;
-	const int n_segment = whisper_full_n_segment(g_ctx);
+	const int n_segment = whisper_full_n_segments(g_ctx);
 
 	for (int i = 0; i < n_segment; ++i)
 	{
-		const char* text = whisper_full_segment_text(g_ctx, i);
-		return += text;
+		const char* text = whisper_full_get_segment_text(g_ctx, i);
+		result += text;
 	}
 
 	return result;
 }
+
+namespace vsl
+{
+	std::string version()
+	{
+		return vsl_version();
+	}
+
+	bool init(const std::string& model_path)
+	{
+		return vsl_asr_init(model_path);
+	}
+
+	std::string transcribe(const std::vector<float>& audio_pcm)
+	{
+		return vsl_asr_transcribe(audio_pcm);
+	}
+
+	void shutdown()
+	{
+		std::lock_guard<std::mutex> lock(g_asr_mutex);
+
+		if (g_ctx)
+		{
+			whisper_free(g_ctx);
+			g_ctx = nullptr;
+		}
+	}
+} // namespace vsl
