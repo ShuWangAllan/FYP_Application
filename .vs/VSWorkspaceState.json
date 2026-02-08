@@ -1,0 +1,16 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\AI",
+    "\\AI\\models",
+    "\\AI\\runtime",
+    "\\AI\\runtime\\whisper",
+    "\\AI\\runtime\\whisper\\include",
+    "\\AI\\runtime\\whisper\\Release",
+    "\\AI\\runtime\\whisper\\src",
+    "\\AI\\vsl_asr",
+    "\\AI\\vsl_asr\\vsl_asr"
+  ],
+  "SelectedNode": "\\AI",
+  "PreviewInSolutionExplorer": false
+}

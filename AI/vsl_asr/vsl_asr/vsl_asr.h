@@ -7,4 +7,18 @@
 #include <string>
 
 // TODO: 在此处引用程序需要的其他标头。
-std::string vsl_version();
+
+namespace vsl
+{
+	const char* vsl_version();
+
+	// init: load model
+	// model pat
+	bool init(const std::string& model_path);
+
+	// load wav file
+	std::string transcribe_wav(const std::string& wav_path, const std::string& language = "auto");
+
+	// release sources
+	void shutdown();
+}
