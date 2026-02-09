@@ -17,7 +17,7 @@ namespace vsl
 	bool init(const std::string& model_path);
 
 	// load wav file
-	std::string transcribe_wav(const std::string& wav_path, const std::string& language = "auto");
+	std::string transcribe_wav(const std::string& model_path, const std::string& wav_path);
 
 	// release sources
 	void shutdown();
