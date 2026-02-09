@@ -9,7 +9,7 @@ from kivy.lang import Builder
 from kivy.properties import StringProperty, BooleanProperty
 from kivy.uix.screenmanager import ScreenManager, Screen
 
-# 字体相关
+# font
 from kivy.core.text import LabelBase
 from kivy.resources import resource_add_path
 import os
