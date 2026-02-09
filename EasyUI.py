@@ -86,7 +86,7 @@ KV = r"""
         text: "Mock UI · Kivy"
         color: 0.7, 0.75, 0.8, 1
 
-# ---------------- Welcome ----------------
+#  Welcome 
 <WelcomeScreen>:
     name: "welcome"
     BoxLayout:
@@ -141,7 +141,7 @@ KV = r"""
             Widget:
         Footer:
 
-# ---------------- Info ----------------
+#  Info 
 <InfoScreen>:
     name: "info"
     BoxLayout:
@@ -186,7 +186,7 @@ KV = r"""
                     on_release: app.goto("practice")
         Footer:
 
-# ---------------- Practice ----------------
+#  Practice 
 <PracticeScreen>:
     name: "practice"
     BoxLayout:
@@ -361,8 +361,8 @@ class VisibleSpokenLanguageApp(App):
 
     def back(self):
         if len(self._history) > 1:
-            self._history.pop()          # 当前
-            target = self._history.pop() # 上一个
+            self._history.pop()          # current
+            target = self._history.pop() # last one
             self.goto(target)
         else:
             self.root.current = "welcome"
