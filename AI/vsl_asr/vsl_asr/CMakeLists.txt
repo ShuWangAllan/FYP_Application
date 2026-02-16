@@ -1,10 +1,10 @@
 ﻿cmake_minimum_required(VERSION 3.16)
 
-# 你的 whisper.cpp 整包根目录（AI/runtime/whisper.cpp）
+#  whisper.cpp（AI/runtime/whisper.cpp）
 set(WHISPER_ROOT ${CMAKE_CURRENT_LIST_DIR}/../../runtime/whisper.cpp)
 message(STATUS "WHISPER_ROOT = ${WHISPER_ROOT}")
 
-# 收集 whisper + ggml 源码（必须包含 .c 和 .cpp）
+#  whisper + ggml
 file(GLOB WHISPER_SOURCES
     ${WHISPER_ROOT}/*.c
     ${WHISPER_ROOT}/*.cpp
@@ -26,7 +26,7 @@ add_executable(vsl_asr
     ${GGML_SOURCES}
 )
 
-# 头文件目录：whisper.h 在 whisper.cpp/include
+# whisper.h in whisper.cpp/include
 target_include_directories(vsl_asr PRIVATE
     ${WHISPER_ROOT}/include
     ${WHISPER_ROOT}/ggml/include
@@ -35,12 +35,12 @@ target_include_directories(vsl_asr PRIVATE
 )
 
 
-# Windows/MSVC：用 UTF-8 编译源文件
+# Windows/MSVC：UTF-8
 if (MSVC)
     target_compile_options(vsl_asr PRIVATE /utf-8)
 endif()
 
-# C++ 标准
+# C++
 set_property(TARGET vsl_asr PROPERTY CXX_STANDARD 20)
 
 target_compile_definitions(vsl_asr PRIVATE

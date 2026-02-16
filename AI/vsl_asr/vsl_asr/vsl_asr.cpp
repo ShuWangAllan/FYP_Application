@@ -124,16 +124,20 @@ bool vsl_asr_init(const std::string& model_path)
 {
     std::lock_guard<std::mutex> lock(g_asr_mutex);
 
-    if (g_ctx != nullptr)
-    {
+    if (g_ctx != nullptr) {
         std::cerr << "[VSL_ASR] Whisper already initialized.\n";
         return true;
     }
 
-    g_ctx = whisper_init_from_file(model_path.c_str());
+    // Focus using CPU instead using GPU
+    whisper_context_params cparams = whisper_context_default_params();
+    cparams.use_gpu = false;
+    cparams.flash_attn = false;
+    cparams.gpu_device = 0;
 
-    if (!g_ctx)
-    {
+    g_ctx = whisper_init_from_file_with_params(model_path.c_str(), cparams);
+
+    if (!g_ctx) {
         std::cerr << "[VSL_ASR] Failed to load whisper model: " << model_path << std::endl;
         return false;
     }
