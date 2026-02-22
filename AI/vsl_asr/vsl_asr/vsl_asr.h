@@ -1,24 +1,32 @@
-﻿// vsl_asr.h: 标准系统包含文件的包含文件
-// 或项目特定的包含文件。
+﻿#pragma once
 
-#pragma once
-
-#include <iostream>
 #include <string>
+#include <vector>
 
-// TODO: 
+namespace vsl {
 
-namespace vsl
-{
-	const char* vsl_version();
+	// Simple version string for your wrapper.
+	const char* version();
 
-	// init: load model
-	// model pat
+	// Load Whisper model once (CPU-only in this wrapper)
 	bool init(const std::string& model_path);
 
-	// load wav file
-	std::string transcribe_wav(const std::string& model_path, const std::string& wav_path);
+	// Transcribe audio from WAV file
+	// Requirements (current minimal parser):
+	// - RIFF/WAVE
+	// - PCM int16
+	// - Mono (1 channel)
+	// - 16000 Hz
+	std::string transcribe_wav(const std::string& wav_path);
 
-	// release sources
+	// Transcribe audio from PCM float samples
+	// Requirements:
+	// - mono
+	// - 16000 Hz
+	// - float samples in [-1, 1]
+	std::string transcribe_pcm(const std::vector<float>& audio_pcm);
+
+	// Release model context
 	void shutdown();
-}
+
+} // namespace vsl

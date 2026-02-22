@@ -2,29 +2,27 @@
 #include <fstream>
 #include "vsl_asr.h"
 
-// For test
-static bool file_exists(const std::string& path) {
-	std::ifstream f(path, std::ios::binary);
-	return f.good();
-}
+int main() {
+    // TODO: change to your actual paths
+    const std::string model_path =
+        "C:/Users/ROG/Documents/GitHub/FYP_Application/AI/models/ggml-tiny.bin";
 
+    const std::string wav_path =
+        "test.wav"; // put test.wav next to your exe, or give an absolute path
 
-int main()
-{
-	/*vsl::init("AI/models/ggml-tiny.bin");*/
-	
-	std::string model_path = "C:/Users/ROG/Documents/GitHub/FYP_Application/AI/models/ggml-tiny.bin";
-	/*std::string wav_path = "text.wav";*/
+    std::cout << "VSL ASR Version: " << vsl::version() << "\n";
+    std::cout << "Loading model: " << model_path << "\n";
 
-	/*auto text = vsl::transcribe_wav(model_path, wav_path);*/
+    if (!vsl::init(model_path)) {
+        std::cerr << "Init failed.\n";
+        return 1;
+    }
 
+    std::cout << "Transcribing wav: " << wav_path << "\n";
+    std::string text = vsl::transcribe_wav(wav_path);
 
-	// Mini test
-	std::cout << "Loading Model: " << model_path << "\n";
-	bool ok = vsl::init(model_path);
-	std::cout << "Init: " << (ok ? "ok" : "Failed") << "\n";
+    std::cout << "Result:\n" << text << "\n";
 
-	vsl::shutdown();
-
-	return 0;
+    vsl::shutdown();
+    return 0;
 }
