@@ -5,44 +5,21 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-message(STATUS "WHISPER_ROOT exists? $<BOOL:${WHISPER_ROOT}>")
+# Build whisper.cpp & ggml as STATIC to avoid runtime missing DLLs
+set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
+set(WHISPER_BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
+set(GGML_BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
 
-# whisper.cpp root
 set(WHISPER_ROOT ${CMAKE_CURRENT_LIST_DIR}/../../runtime/whisper.cpp)
 message(STATUS "WHISPER_ROOT = ${WHISPER_ROOT}")
 
-# --- Add whisper.cpp as a subproject ---
-# Build into a separate binary dir under your build tree
-add_subdirectory(${WHISPER_ROOT} ${CMAKE_BINARY_DIR}/whisper_build)
-
-# --- Your executable ---
-add_executable(vsl_asr
-    main.cpp
-    vsl_asr.cpp
-    vsl_asr.h
-)
-
-# Includes for whisper public headers
-target_include_directories(vsl_asr PRIVATE
-    ${WHISPER_ROOT}/include
-)
-
-# Windows/MSVC: UTF-8 source encoding
-if (MSVC)
-    target_compile_options(vsl_asr PRIVATE /utf-8)
+if (NOT EXISTS ${WHISPER_ROOT}/CMakeLists.txt)
+    message(FATAL_ERROR "whisper.cpp CMakeLists.txt not found at: ${WHISPER_ROOT}")
 endif()
 
-# -------- Force CPU-only usage from your wrapper side --------
-# (Even if whisper supports GPU, your code can stay CPU-only by params.use_gpu=false)
-# Still, you can add extra safe defs here if you want:
-target_compile_definitions(vsl_asr PRIVATE
-    GGML_VERSION="unknown"
-    GGML_COMMIT="unknown"
-    WHISPER_VERSION="unknown"
-)
+add_subdirectory(${WHISPER_ROOT} ${CMAKE_BINARY_DIR}/whisper_build)
 
-# --- Link against whisper.cpp target ---
-# Different versions export different target names. Try common ones.
+# Detect whisper target name
 set(_WHISPER_TARGET "")
 if (TARGET whisper)
     set(_WHISPER_TARGET whisper)
@@ -56,19 +33,37 @@ endif()
 
 if (_WHISPER_TARGET STREQUAL "")
     message(FATAL_ERROR
-        "Could not find whisper.cpp CMake target. "
-        "Expected one of: whisper, whispercpp, whisper-lib, libwhisper. "
-        "Open ${WHISPER_ROOT}/CMakeLists.txt to check the exported target name."
+        "Could not find whisper.cpp target. Check ${WHISPER_ROOT}/CMakeLists.txt for add_library(...) name."
     )
 endif()
 
-if (WIN32)
-    add_custom_command(TARGET vsl_asr POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        $<TARGET_FILE:${_WHISPER_TARGET}>
-        $<TARGET_FILE_DIR:vsl_asr>
-    )
+message(STATUS "Using whisper target: ${_WHISPER_TARGET}")
+
+# Build DLL plugin (for Python)
+add_library(vsl_asr_plugin SHARED
+    vsl_asr.cpp
+    vsl_asr.h
+    vsl_asr_plugin.cpp
+    vsl_asr_plugin.h
+)
+
+target_include_directories(vsl_asr_plugin PRIVATE
+    ${WHISPER_ROOT}/include
+)
+
+target_link_libraries(vsl_asr_plugin PRIVATE ${_WHISPER_TARGET})
+
+if (MSVC)
+    target_compile_options(vsl_asr_plugin PRIVATE /utf-8)
 endif()
 
-message(STATUS "Linking vsl_asr with whisper target: ${_WHISPER_TARGET}")
-target_link_libraries(vsl_asr PRIVATE ${_WHISPER_TARGET})
+# Build demo executable (for debugging)
+add_executable(vsl_asr_demo
+    main.cpp
+)
+
+target_link_libraries(vsl_asr_demo PRIVATE vsl_asr_plugin)
+
+if (MSVC)
+    target_compile_options(vsl_asr_demo PRIVATE /utf-8)
+endif()
