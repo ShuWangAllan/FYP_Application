@@ -10,6 +10,7 @@
 #include <cstdint>
 #include <cstring>
 #include <algorithm>
+#include <thread>
 #include "whisper.h"
 
 namespace vsl {

@@ -3,6 +3,12 @@
 #include <string>
 #include <vector>
 
+struct AudioBuffer {
+	int sample_rate = 0;
+	int channels = 0;
+	std::vector<float> samples; // interleaved if channel > 1;
+};
+
 namespace vsl {
 
 	// Simple version string for your wrapper.

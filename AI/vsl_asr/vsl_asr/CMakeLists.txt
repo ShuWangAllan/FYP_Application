@@ -45,7 +45,7 @@ add_library(vsl_asr_plugin SHARED
     vsl_asr.h
     vsl_asr_plugin.cpp
     vsl_asr_plugin.h
-)
+ "vsl_audio.h" "vsl_audio.cpp")
 
 target_include_directories(vsl_asr_plugin PRIVATE
     ${WHISPER_ROOT}/include
@@ -60,9 +60,11 @@ endif()
 # Build demo executable (for debugging)
 add_executable(vsl_asr_demo
     main.cpp
-)
+    vsl_asr.cpp
+    vsl_asr.h
+ "vsl_audio.h" "vsl_audio.cpp")
 
-target_link_libraries(vsl_asr_demo PRIVATE vsl_asr_plugin)
+target_link_libraries(vsl_asr_demo PRIVATE ${_WHISPER_TARGET})
 
 if (MSVC)
     target_compile_options(vsl_asr_demo PRIVATE /utf-8)
