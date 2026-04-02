@@ -143,8 +143,6 @@ namespace vsl::audio
             return false;
         }
 
-        // 目前先做 WAV fallback
-        // 下一步这里替换成 FFmpeg 解码即可
         return decode_wav_pcm16(path, out, err);
     }
 

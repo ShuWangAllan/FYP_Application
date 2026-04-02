@@ -24,4 +24,11 @@ namespace vsl::audio
 		std::vector<float>& out,
 		std::string& err
 	);
+
+	bool normalize_to_mono_f32(
+		const DecodedAudio& in,
+		int dst_rate,
+		std::vector<float>& out,
+		std::string& err
+	);
 } // namespace vsl::audio
