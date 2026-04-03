@@ -16,4 +16,17 @@ public class AudioTranscriber {
             return "decode failed: " + e.getMessage();
         }
     }
+
+    public static String testNative(short[] pcm, int sampleRate, int channelCount)
+    {
+        try
+        {
+            AsrBridge bridge = new AsrBridge();
+            return bridge.transcribePcm16(pcm, sampleRate, channelCount);
+        }
+        catch(Exception e)
+        {
+            return "transcribe failed: " + e.getMessage();
+        }
+    }
 }

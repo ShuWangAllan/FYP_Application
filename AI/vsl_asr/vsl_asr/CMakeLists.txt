@@ -5,6 +5,8 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+find_package(JNI REQUIRED)
+
 # Build whisper.cpp & ggml as STATIC to avoid runtime missing DLLs
 set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
 set(WHISPER_BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
@@ -39,19 +41,25 @@ endif()
 
 message(STATUS "Using whisper target: ${_WHISPER_TARGET}")
 
-# Build DLL plugin (for Python)
+# Build DLL plugin (for Python / JNI)
 add_library(vsl_asr_plugin SHARED
     vsl_asr.cpp
     vsl_asr.h
+    vsl_audio.cpp
+    vsl_audio.h
     vsl_asr_plugin.cpp
     vsl_asr_plugin.h
- "vsl_audio.h" "vsl_audio.cpp")
+)
 
 target_include_directories(vsl_asr_plugin PRIVATE
     ${WHISPER_ROOT}/include
+    "C:/Program Files/Eclipse Adoptium/jdk-25.0.2.10-hotspot/include"
+    "C:/Program Files/Eclipse Adoptium/jdk-25.0.2.10-hotspot/include/win32"
 )
 
-target_link_libraries(vsl_asr_plugin PRIVATE ${_WHISPER_TARGET})
+target_link_libraries(vsl_asr_plugin PRIVATE
+    ${_WHISPER_TARGET}
+)
 
 if (MSVC)
     target_compile_options(vsl_asr_plugin PRIVATE /utf-8)
@@ -62,9 +70,17 @@ add_executable(vsl_asr_demo
     main.cpp
     vsl_asr.cpp
     vsl_asr.h
- "vsl_audio.h" "vsl_audio.cpp")
+    vsl_audio.cpp
+    vsl_audio.h
+)
 
-target_link_libraries(vsl_asr_demo PRIVATE ${_WHISPER_TARGET})
+target_include_directories(vsl_asr_demo PRIVATE
+    ${WHISPER_ROOT}/include
+)
+
+target_link_libraries(vsl_asr_demo PRIVATE
+    ${_WHISPER_TARGET}
+)
 
 if (MSVC)
     target_compile_options(vsl_asr_demo PRIVATE /utf-8)
