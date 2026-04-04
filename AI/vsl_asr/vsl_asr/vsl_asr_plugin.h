@@ -1,6 +1,5 @@
 #pragma once
 #include <stddef.h>
-#include <jni.h>
 
 #ifdef _WIN32
 	#define VSL_API __declspec(dllexport)

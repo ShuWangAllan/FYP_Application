@@ -39,25 +39,19 @@ endif()
 
 message(STATUS "Using whisper target: ${_WHISPER_TARGET}")
 
-# Build DLL plugin (for Python / JNI)
+# Build DLL plugin (for Python)
 add_library(vsl_asr_plugin SHARED
     vsl_asr.cpp
     vsl_asr.h
-    vsl_audio.cpp
-    vsl_audio.h
     vsl_asr_plugin.cpp
     vsl_asr_plugin.h
 )
 
 target_include_directories(vsl_asr_plugin PRIVATE
     ${WHISPER_ROOT}/include
-    "C:/Program Files/Eclipse Adoptium/jdk-25.0.2.10-hotspot/include"
-    "C:/Program Files/Eclipse Adoptium/jdk-25.0.2.10-hotspot/include/win32"
 )
 
-target_link_libraries(vsl_asr_plugin PRIVATE
-    ${_WHISPER_TARGET}
-)
+target_link_libraries(vsl_asr_plugin PRIVATE ${_WHISPER_TARGET})
 
 if (MSVC)
     target_compile_options(vsl_asr_plugin PRIVATE /utf-8)
@@ -66,19 +60,9 @@ endif()
 # Build demo executable (for debugging)
 add_executable(vsl_asr_demo
     main.cpp
-    vsl_asr.cpp
-    vsl_asr.h
-    vsl_audio.cpp
-    vsl_audio.h
 )
 
-target_include_directories(vsl_asr_demo PRIVATE
-    ${WHISPER_ROOT}/include
-)
-
-target_link_libraries(vsl_asr_demo PRIVATE
-    ${_WHISPER_TARGET}
-)
+target_link_libraries(vsl_asr_demo PRIVATE vsl_asr_plugin)
 
 if (MSVC)
     target_compile_options(vsl_asr_demo PRIVATE /utf-8)

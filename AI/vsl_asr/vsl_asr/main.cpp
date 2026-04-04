@@ -8,7 +8,7 @@ int main() {
         "C:/Users/ROG/Documents/GitHub/FYP_Application/AI/models/ggml-tiny.bin";
 
     const std::string wav_path =
-        "C:/Users/ROG/Documents/GitHub/FYP_Application/AI/vsl_asr/vsl_asr/test.wav"; // put test.wav next to your exe, or give an absolute path
+        "test.wav"; // put test.wav next to your exe, or give an absolute path
 
     std::cout << "VSL ASR Version: " << vsl::version() << "\n";
     std::cout << "Loading model: " << model_path << "\n";
