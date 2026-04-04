@@ -1,6 +1,7 @@
-﻿// vsl_asr.cpp: 定义应用程序的入口点。
+﻿// vsl_asr.cpp: implementation of the VSL ASR wrapper
 
 #include "vsl_asr.h"
+#include "vsl_audio.h"
 
 #include <mutex>
 #include <vector>
@@ -10,6 +11,8 @@
 #include <cstdint>
 #include <cstring>
 #include <algorithm>
+#include <thread>
+
 #include "whisper.h"
 
 namespace vsl {
@@ -21,149 +24,6 @@ namespace vsl {
     static bool file_exists(const std::string& path) {
         std::ifstream f(path, std::ios::binary);
         return f.good();
-    }
-
-    static uint32_t read_u32_le(std::ifstream& in) {
-        uint8_t b[4]{};
-        in.read(reinterpret_cast<char*>(b), 4);
-        return (uint32_t)b[0] | ((uint32_t)b[1] << 8) | ((uint32_t)b[2] << 16) | ((uint32_t)b[3] << 24);
-    }
-
-    static uint16_t read_u16_le(std::ifstream& in) {
-        uint8_t b[2]{};
-        in.read(reinterpret_cast<char*>(b), 2);
-        return (uint16_t)b[0] | ((uint16_t)b[1] << 8);
-    }
-
-    struct WavPcm16 {
-        int sample_rate = 0;
-        int channels = 0;
-        std::vector<int16_t> samples; // interleaved if channels>1 (but we reject >1)
-    };
-
-    // Minimal WAV parser: PCM16 only
-    static bool load_wav_pcm16_mono_16k(const std::string& wav_path, WavPcm16& out, std::string& err) {
-        std::ifstream in(wav_path, std::ios::binary);
-        if (!in.good()) {
-            err = "Cannot open wav file: " + wav_path;
-            return false;
-        }
-
-        char riff[4]{};
-        in.read(riff, 4);
-        if (std::strncmp(riff, "RIFF", 4) != 0) {
-            err = "Not a RIFF file.";
-            return false;
-        }
-
-        (void)read_u32_le(in); // file size
-
-        char wave[4]{};
-        in.read(wave, 4);
-        if (std::strncmp(wave, "WAVE", 4) != 0) {
-            err = "Not a WAVE file.";
-            return false;
-        }
-
-        bool got_fmt = false;
-        bool got_data = false;
-
-        uint16_t audio_format = 0;
-        uint16_t num_channels = 0;
-        uint32_t sample_rate = 0;
-        uint16_t bits_per_sample = 0;
-
-        std::vector<int16_t> pcm;
-
-        while (in.good() && !(got_fmt && got_data)) {
-            char chunk_id[4]{};
-            in.read(chunk_id, 4);
-            if (!in.good()) break;
-
-            uint32_t chunk_size = read_u32_le(in);
-            if (!in.good()) break;
-
-            if (std::strncmp(chunk_id, "fmt ", 4) == 0) {
-                // fmt chunk
-                audio_format = read_u16_le(in);
-                num_channels = read_u16_le(in);
-                sample_rate = read_u32_le(in);
-                (void)read_u32_le(in); // byte rate
-                (void)read_u16_le(in); // block align
-                bits_per_sample = read_u16_le(in);
-
-                // Skip any remaining fmt bytes
-                uint32_t read_bytes = 2 + 2 + 4 + 4 + 2 + 2;
-                if (chunk_size > read_bytes) {
-                    in.seekg(chunk_size - read_bytes, std::ios::cur);
-                }
-
-                got_fmt = true;
-            }
-            else if (std::strncmp(chunk_id, "data", 4) == 0) {
-                // data chunk
-                if (!got_fmt) {
-                    // some files have fmt before data, but still: handle gracefully
-                }
-
-                // We only support PCM16
-                if (chunk_size % 2 != 0) {
-                    err = "Invalid data chunk size (not multiple of 2).";
-                    return false;
-                }
-
-                pcm.resize(chunk_size / 2);
-                in.read(reinterpret_cast<char*>(pcm.data()), chunk_size);
-                got_data = true;
-            }
-            else {
-                // skip unknown chunk
-                in.seekg(chunk_size, std::ios::cur);
-            }
-
-            // chunk sizes are padded to even
-            if (chunk_size % 2 == 1) {
-                in.seekg(1, std::ios::cur);
-            }
-        }
-
-        if (!got_fmt || !got_data) {
-            err = "Missing fmt or data chunk in WAV.";
-            return false;
-        }
-
-        if (audio_format != 1) {
-            err = "Unsupported WAV format: only PCM (format=1) supported.";
-            return false;
-        }
-        if (bits_per_sample != 16) {
-            err = "Unsupported WAV bit depth: only 16-bit supported.";
-            return false;
-        }
-        if (num_channels != 1) {
-            err = "Unsupported channel count: only mono (1 channel) supported.";
-            return false;
-        }
-        if (sample_rate != 16000) {
-            std::ostringstream oss;
-            oss << "Unsupported sample rate: " << sample_rate << ". Only 16000 Hz supported.";
-            err = oss.str();
-            return false;
-        }
-
-        out.sample_rate = (int)sample_rate;
-        out.channels = (int)num_channels;
-        out.samples = std::move(pcm);
-        return true;
-    }
-
-    static std::vector<float> pcm16_to_f32(const std::vector<int16_t>& pcm16) {
-        std::vector<float> f;
-        f.reserve(pcm16.size());
-        for (int16_t s : pcm16) {
-            f.push_back(std::clamp((float)s / 32768.0f, -1.0f, 1.0f));
-        }
-        return f;
     }
 
     // Public API
@@ -223,7 +83,6 @@ namespace vsl {
         const unsigned hc = std::max(1u, std::thread::hardware_concurrency());
         params.n_threads = (int)hc;
 
-
         // Run
         int rc = whisper_full(g_ctx, params, audio_pcm.data(), (int)audio_pcm.size());
         if (rc != 0) {
@@ -243,19 +102,28 @@ namespace vsl {
         return result;
     }
 
-    std::string transcribe_wav(const std::string& wav_path) {
-        if (!file_exists(wav_path)) {
-            return "[VSL_ASR] Error: WAV file not found: " + wav_path;
+    std::string transcribe_file(const std::string& audio_path) {
+        if (!file_exists(audio_path)) {
+            return "[VSL_ASR] Error: audio file not found: " + audio_path;
         }
 
-        WavPcm16 wav;
+        vsl::audio::DecodedAudio decoded;
         std::string err;
-        if (!load_wav_pcm16_mono_16k(wav_path, wav, err)) {
-            return std::string("[VSL_ASR] Error: WAV load failed: ") + err;
+
+        if (!vsl::audio::decode_audio_file(audio_path, decoded, err)) {
+            return std::string("[VSL_ASR] Error: decode failed: ") + err;
         }
 
-        auto f32 = pcm16_to_f32(wav.samples);
+        std::vector<float> f32;
+        if (!vsl::audio::normalize_to_mono_f32(decoded, 16000, f32, err)) {
+            return std::string("[VSL_ASR] Error: normalize failed: ") + err;
+        }
+
         return transcribe_pcm(f32);
+    }
+
+    std::string transcribe_wav(const std::string& wav_path) {
+        return transcribe_file(wav_path);
     }
 
     void shutdown() {
