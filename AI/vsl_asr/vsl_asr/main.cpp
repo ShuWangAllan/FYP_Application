@@ -1,8 +1,12 @@
 #include <iostream>
 #include <fstream>
+#include <windows.h>
 #include "vsl_asr.h"
 
 int main() {
+    SetConsoleOutputCP(CP_UTF8);
+    SetConsoleCP(CP_UTF8);
+
     // TODO: change to your actual paths
     const std::string model_path =
         "C:/Users/ROG/Documents/GitHub/FYP_Application/AI/models/ggml-tiny.bin";
@@ -22,6 +26,10 @@ int main() {
     std::string text = vsl::transcribe_wav(wav_path);
 
     std::cout << "Result:\n" << text << "\n";
+
+    std::ofstream fout("result_utf8.txt", std::ios::binary);
+    fout << text;
+    fout.close();
 
     vsl::shutdown();
     return 0;

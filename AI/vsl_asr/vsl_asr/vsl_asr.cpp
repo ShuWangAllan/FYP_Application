@@ -78,6 +78,7 @@ namespace vsl {
         params.print_timestamps = false;
         params.translate = false;
         params.no_context = true;
+        params.language = "zh";
 
         // Threads
         const unsigned hc = std::max(1u, std::thread::hardware_concurrency());
