@@ -178,52 +178,29 @@ extern "C"
 		return g_last_err.c_str();
 	}
 
-	JNIEXPORT jstring JNICALL Java_org_example_fpy_AsrBridge_transcribePcm16
+	JNIEXPORT jstring JNICALL Java_org_example_fyp_AsrBridge_transcribePcm16
 	(
-		JNIEnv* env.
+		JNIEnv* env,
 		jobject /* thiz */,
 		jshortArray pcmArray,
 		jint sampleRate,
 		jint channelCount
-	){
+	)
+	{
 		if (pcmArray == nullptr)
 		{
-			return env->NewStringUTF("Native error: pcmArray is null");
+			return env->NewStringUTF("native error: pcmArray is null");
 		}
 
 		jsize len = env->GetArrayLength(pcmArray);
-		if (len <= 0)
-		{
-			return env->NewStringUTF("native error: pcmArray is empty");
-		}
 
-		std::vector<int16_t> pcm16((size_t)len);
-		env->GetShortArrayRegion(
-			pcmArray,
-			0,
-			len,
-			reinterpret_cast<jshort*>(pcm16.data())
-		);
+		std::ostringstream oss;
+		oss << "native ok\n";
+		oss << "sampleRate = " << sampleRate << "\n";
+		oss << "channelCount = " << channelCount << "\n";
+		oss << "pcm16.length = " << len;
 
-		auto f32 = pcm16_to_f32(pcm16);
-		auto mono = to_mono(f32, (int)channelCount);
-		auto mono16k = resample_linear(mono, (int)sampleRate, 16000);
-
-		if (mono16k.empty())
-		{
-			return env->NewStringUTF("native error: audio normalize failed");
-		}
-
-		std::lock_guard<std::mutex> lock(g_mtx);
-		std::string out = vsl::transcribe_pcm(mono16k);
-
-		if (out.rfind("[VSL_ASR] Error:", 0) == 0)
-		{
-			g_last_err = out;
-			return env->NewStringUTF(out.c_str());
-		}
-
-		g_last_err.clear();
+		std::string out = oss.str();
 		return env->NewStringUTF(out.c_str());
 	}
 }
