@@ -7,11 +7,17 @@ public class Main {
         int sampleRate = 44100;
         int channelCount = 2;
         
+        String modelPath = "C:\\Users\\ROG\\Documents\\GitHub\\FYP_Application\\AI\\models\\ggml-tiny.bin";
+
         try
         {
             AsrBridge bridge = new AsrBridge();
+            
+            boolean ok = bridge.initModel(modelPath);
+            System.out.println("initModel result: " + ok);
+
             String result = bridge.transcribePcm16(pcm, sampleRate, channelCount);
-            System.out.println("Native test result: " + result);
+            System.out.println("Native test result:" + result);
         }
         catch(Throwable e)
         {

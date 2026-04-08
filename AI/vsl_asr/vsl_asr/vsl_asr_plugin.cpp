@@ -82,7 +82,7 @@ static std::vector<float> resample_linear(
 	{
 		const double src_pos = (double)i / ratio;
 		const size_t idx0 = (size_t)src_pos;
-		const size_t idx1 = std::min(idx1 + 1, mono.size() - 1);
+		const size_t idx1 = std::min(idx0 + 1, mono.size() - 1);
 		const double frac = src_pos - (double)idx0;
 
 		const float s0 = mono[idx0];
@@ -193,14 +193,68 @@ extern "C"
 		}
 
 		jsize len = env->GetArrayLength(pcmArray);
+		if (len <= 0)
+		{
+			return env->NewStringUTF("native error: pcmArray is empty");
+		}
+
+		std::vector<int16_t> pcm16((size_t)len);
+		env->GetShortArrayRegion(
+			pcmArray,
+			0,
+			len,
+			reinterpret_cast<jshort*>(pcm16.data())
+		);
+
+		auto f32 = pcm16_to_f32(pcm16);
+		auto mono = to_mono(f32, (int)channelCount);
+		auto mono16k = resample_linear(mono, (int)sampleRate, 16000);
 
 		std::ostringstream oss;
-		oss << "native ok\n";
-		oss << "sampleRate = " << sampleRate << "\n";
-		oss << "channelCount = " << channelCount << "\n";
-		oss << "pcm16.length = " << len;
+		oss << "native normalize ok\n";
+		oss << "input.sampleRate = " << sampleRate << "\n";
+		oss << "input.channelCount = " << channelCount << "\n";
+		oss << "input.pcm16.length = " << len << "\n";
+		oss << "f32.length = " << f32.size() << "\n";
+		oss << "mono.length = " << mono.size() << "\n";
+		oss << "mono16k.length = " << mono16k.size();
 
 		std::string out = oss.str();
 		return env->NewStringUTF(out.c_str());
+	}
+
+	JNIEXPORT jboolean JNICALL Java_org_example_fyp_AsrBridge_initModel
+	(
+		JNIEnv* env,
+		jobject /* thiz */,
+		jstring modelPath
+	)
+	{
+		if (modelPath == nullptr)
+		{
+			g_last_err = "modelPath is null";
+			return JNI_FALSE;
+		}
+
+		const char* pathChars = env->GetStringUTFChars(modelPath, nullptr);
+		if (!pathChars)
+		{
+			g_last_err = "GetStringUTFChars failed";
+			return JNI_FALSE;
+		}
+
+		std::string path(pathChars);
+		env->ReleaseStringUTFChars(modelPath, pathChars);
+
+		std::lock_guard<std::mutex> lock(g_mtx);
+
+		if (!vsl::init(path))
+		{
+			g_last_err = "vsl::init failed";
+			return JNI_FALSE;
+		}
+
+		g_last_err.clear();
+		return JNI_TRUE;
 	}
 }
