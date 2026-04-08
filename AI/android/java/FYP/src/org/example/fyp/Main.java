@@ -3,9 +3,14 @@ package org.example.fyp;
 public class Main {
     public static void main(String[] args)
     {
-        short[] pcm = new short[] {100, 200, -100, -200, 300, -300};
+        short[] pcm = new short[44100];
         int sampleRate = 44100;
         int channelCount = 2;
+
+        for (int i = 0; i < pcm.length; i++)
+        {
+            pcm[i] = (short)(Math.sin(i * 0.05) * 2000);
+        }
         
         String modelPath = "C:\\Users\\ROG\\Documents\\GitHub\\FYP_Application\\AI\\models\\ggml-tiny.bin";
 

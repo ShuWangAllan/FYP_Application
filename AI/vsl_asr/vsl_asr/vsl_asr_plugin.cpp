@@ -210,16 +210,19 @@ extern "C"
 		auto mono = to_mono(f32, (int)channelCount);
 		auto mono16k = resample_linear(mono, (int)sampleRate, 16000);
 
-		std::ostringstream oss;
-		oss << "native normalize ok\n";
-		oss << "input.sampleRate = " << sampleRate << "\n";
-		oss << "input.channelCount = " << channelCount << "\n";
-		oss << "input.pcm16.length = " << len << "\n";
-		oss << "f32.length = " << f32.size() << "\n";
-		oss << "mono.length = " << mono.size() << "\n";
-		oss << "mono16k.length = " << mono16k.size();
+		if (mono16k.empty())
+		{
+			return env->NewStringUTF("native error: audio normalize failed");
+		}
 
-		std::string out = oss.str();
+		std::lock_guard<std::mutex> lock(g_mtx);
+		std::string out = vsl::transcribe_pcm(mono16k);
+
+		if (out.empty())
+		{
+			return env->NewStringUTF("native error: empty transcription result");
+		}
+
 		return env->NewStringUTF(out.c_str());
 	}
 
