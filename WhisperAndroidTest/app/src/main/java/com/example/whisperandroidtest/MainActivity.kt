@@ -3,45 +3,55 @@ package com.example.whisperandroidtest
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import com.example.whisperandroidtest.ui.theme.WhisperAndroidTestTheme
+import java.io.File
 
 class MainActivity : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-        setContent {
-            WhisperAndroidTestTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
-            }
+
+    companion object {
+        init {
+            System.loadLibrary("whisperandroidtest")
         }
     }
-}
 
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
+    external fun stringFromJNI(): String
+    external fun initModel(modelPath: String): Boolean
 
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    WhisperAndroidTestTheme {
-        Greeting("Android")
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        val testMsg = stringFromJNI()
+
+        val copiedFile = copyAssetToInternalStorage("ggml-tiny.bin")
+        val initOk = if (copiedFile != null) {
+            initModel(copiedFile.absolutePath)
+        } else {
+            false
+        }
+
+        val finalText = if (initOk && copiedFile != null) {
+            "$testMsg\nfile copied: ${copiedFile.absolutePath}\ninit model success"
+        } else {
+            "$testMsg\ninit model failed"
+        }
+
+        setContent {
+            Text(text = finalText)
+        }
+    }
+
+    private fun copyAssetToInternalStorage(fileName: String): File? {
+        return try {
+            val outFile = File(filesDir, fileName)
+            assets.open(fileName).use { input ->
+                outFile.outputStream().use { output ->
+                    input.copyTo(output)
+                }
+            }
+            outFile
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
     }
 }
