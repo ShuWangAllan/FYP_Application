@@ -1,5 +1,5 @@
-#include <jni.h>
 #include <string>
+#include <jni.h>
 #include "asr_engine.h"
 
 extern "C"
@@ -25,4 +25,19 @@ Java_com_example_whisperandroidtest_MainActivity_initModel(
 
     bool ok = init_model(modelPathStr);
     return ok ? JNI_TRUE : JNI_FALSE;
+}
+
+extern "C"
+JNIEXPORT jstring JNICALL
+Java_com_example_whisperandroidtest_MainActivity_transcribeFile(
+        JNIEnv* env,
+        jobject /* this */,
+        jstring wavPath
+        ){
+    const char* pathChars = env->GetStringUTFChars(wavPath, nullptr);
+    std::string wavPathStr = pathChars ? pathChars : "";
+    env->ReleaseStringUTFChars(wavPath, pathChars);
+
+    std::string result = transcribe_wav(wavPathStr);
+    return env->NewStringUTF(result.c_str());
 }
