@@ -22,13 +22,23 @@ import kotlin.concurrent.thread
 
 class MainActivity : ComponentActivity() {
 
+    private val AppBg = Color(0xFF101012)
+    private val PanelBg = Color(0xFF1F1F24)
+    private val BoxBg = Color(0xFF26262E)
+
+    private val PrimaryText = Color.White
+    private val SecondaryText = Color(0xFFE6EBF5)
+    private val HintText = Color(0xFFCCD6E6)
+    private val AccentGreen = Color(0xFF4CE680)
+    private val BorderColor = Color(0xFF3A3A44)
+
     companion object {
         init {
             System.loadLibrary("whisperandroidtest")
         }
     }
 
-    enum class PracticeState{
+    enum class PracticeState {
         Idle,
         Recording,
         Transcribing
@@ -59,7 +69,7 @@ class MainActivity : ComponentActivity() {
 
         Surface(
             modifier = Modifier.fillMaxSize(),
-            color = Color(0xFF101012)
+            color = AppBg
         ) {
             Column(modifier = Modifier.fillMaxSize()) {
                 Header(headerText = headerText, statusText = statusText)
@@ -99,19 +109,19 @@ class MainActivity : ComponentActivity() {
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp)
-                .background(Color(0xFF1C1C21))
+                .background(PanelBg)
                 .padding(horizontal = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
                 text = headerText,
-                color = Color.White,
+                color = PrimaryText,
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.weight(1f)
             )
             Text(
                 text = statusText,
-                color = Color(0xFFCCD6E6),
+                color = HintText,
                 style = MaterialTheme.typography.bodyMedium
             )
         }
@@ -123,13 +133,13 @@ class MainActivity : ComponentActivity() {
             modifier = Modifier
                 .fillMaxWidth()
                 .height(32.dp)
-                .background(Color(0xFF1C1C21))
+                .background(PanelBg)
                 .padding(horizontal = 12.dp),
             contentAlignment = Alignment.CenterStart
         ) {
             Text(
                 text = "Android Prototype",
-                color = Color(0xFFB3BFCC),
+                color = HintText,
                 style = MaterialTheme.typography.bodySmall
             )
         }
@@ -144,7 +154,7 @@ class MainActivity : ComponentActivity() {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFF101012))
+                .background(AppBg)
                 .padding(32.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -152,7 +162,7 @@ class MainActivity : ComponentActivity() {
 
             Text(
                 text = "Visible Spoken Language",
-                color = Color.White,
+                color = PrimaryText,
                 style = MaterialTheme.typography.headlineMedium
             )
 
@@ -160,7 +170,7 @@ class MainActivity : ComponentActivity() {
 
             Text(
                 text = "让语言学习更具视觉化：通过语音与面部识别，\n在手机上训练发音、声调与口型。",
-                color = Color(0xFFE6EBF5),
+                color = SecondaryText,
                 style = MaterialTheme.typography.bodyLarge
             )
 
@@ -193,28 +203,64 @@ class MainActivity : ComponentActivity() {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFF101012))
+                .background(AppBg)
                 .padding(24.dp)
                 .verticalScroll(rememberScrollState())
         ) {
             Text(
                 text = "功能介绍",
-                color = Color.White,
+                color = PrimaryText,
                 style = MaterialTheme.typography.headlineSmall
             )
 
             Spacer(modifier = Modifier.height(20.dp))
 
             Text(
-                text = "• 发音练习：实时显示音高曲线与目标四声轮廓的偏差（后续接入）\n\n" +
-                        "• 口型提示：相机捕捉面部关键点，给出口形反馈（后续接入）\n\n" +
-                        "• 学习单元：按音节与声调组织练习（后续接入）\n\n" +
-                        "• 进度记录：保存每次练习结果与曲线（后续接入）",
-                color = Color(0xFFE6EBF5),
+                text = "• 发音练习：录音后进行基础转录与发音训练\n\n" +
+                        "• 声调练习：结合四声进行基础朗读训练\n\n" +
+                        "• 学习单元：按由易到难的语言难度组织练习\n\n" +
+                        "• 进度扩展：后续可加入曲线、口型与记录功能",
+                color = SecondaryText,
                 style = MaterialTheme.typography.bodyLarge
             )
 
-            Spacer(modifier = Modifier.weight(1f, fill = true))
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Text(
+                text = "学习路径（由易到难）",
+                color = PrimaryText,
+                style = MaterialTheme.typography.titleLarge
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(BoxBg, RoundedCornerShape(8.dp))
+                    .border(1.dp, BorderColor, RoundedCornerShape(8.dp))
+                    .padding(16.dp)
+            ) {
+                Text(
+                    text =
+                        "Stage 1: Single Syllable\n" +
+                                "从最基础的单音节开始，例如 ma / ba / da。\n" +
+                                "目标：先让学习者熟悉音节发音。\n\n" +
+                                "Stage 2: Tone Practice\n" +
+                                "练习同一音节的四声变化，例如 mā / má / mǎ / mà。\n" +
+                                "目标：强化声调辨识与控制。\n\n" +
+                                "Stage 3: Word Practice\n" +
+                                "进入双音节或简单词语，例如 妈妈 / 中国 / 学习。\n" +
+                                "目标：把单音节能力迁移到真实词语。\n\n" +
+                                "Stage 4: Sentence Practice\n" +
+                                "练习简单短句，例如 你好 / 我喜欢汉语。\n" +
+                                "目标：提升连贯表达与完整语音输出。",
+                    color = HintText,
+                    style = MaterialTheme.typography.bodyLarge
+                )
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
 
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 Button(onClick = onBack, modifier = Modifier.weight(1f)) {
@@ -238,17 +284,19 @@ class MainActivity : ComponentActivity() {
         var feedbackText by remember { mutableStateOf("Idle") }
         var practiceState by remember { mutableStateOf(PracticeState.Idle) }
 
+        var targetEnglish by remember { mutableStateOf("hello") }
+        var targetChinese by remember { mutableStateOf("你好") }
+        var targetPinyin by remember { mutableStateOf("nǐ hǎo") }
+
         val toneOptions = listOf("Tone 1", "Tone 2", "Tone 3", "Tone 4")
         var toneExpanded by remember { mutableStateOf(false) }
 
         fun resetState() {
-            if (practiceState == PracticeState.Transcribing){
-                return
-            }
+            if (practiceState == PracticeState.Transcribing) return
 
-            try{
+            try {
                 wavRecorder?.stop()
-            }catch (_: Exception){
+            } catch (_: Exception) {
             }
             wavRecorder = null
 
@@ -257,45 +305,158 @@ class MainActivity : ComponentActivity() {
             setStatus("Ready")
         }
 
-        Row(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFF101012))
+                .background(AppBg)
                 .padding(16.dp),
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Column(
                 modifier = Modifier
-                    .weight(0.46f)
-                    .fillMaxHeight()
-                    .background(Color(0xFF1F1F24), RoundedCornerShape(8.dp))
+                    .fillMaxWidth()
+                    .weight(0.36f)
+                    .background(PanelBg, RoundedCornerShape(8.dp))
                     .padding(12.dp)
+                    .verticalScroll(rememberScrollState())
             ) {
                 Text(
-                    text = "Camera Preview (占位)",
-                    color = Color.White,
+                    text = "Target English",
+                    color = SecondaryText,
                     style = MaterialTheme.typography.titleMedium
                 )
 
-                Spacer(modifier = Modifier.height(10.dp))
+                Spacer(modifier = Modifier.height(6.dp))
 
                 Box(
                     modifier = Modifier
-                        .weight(1f)
                         .fillMaxWidth()
-                        .background(Color(0xFF26262E), RoundedCornerShape(8.dp))
-                        .border(1.dp, Color(0xFF3A3A44), RoundedCornerShape(8.dp)),
-                    contentAlignment = Alignment.Center
+                        .background(BoxBg, RoundedCornerShape(8.dp))
+                        .border(1.dp, BorderColor, RoundedCornerShape(8.dp))
+                        .padding(12.dp)
                 ) {
-                    Text("Camera Area", color = Color(0xFFCCD6E6))
+                    Text(
+                        text = targetEnglish,
+                        color = PrimaryText,
+                        style = MaterialTheme.typography.bodyLarge
+                    )
                 }
 
-                Spacer(modifier = Modifier.height(10.dp))
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text(
+                    text = "Target Chinese",
+                    color = SecondaryText,
+                    style = MaterialTheme.typography.titleMedium
+                )
+
+                Spacer(modifier = Modifier.height(6.dp))
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(BoxBg, RoundedCornerShape(8.dp))
+                        .border(1.dp, BorderColor, RoundedCornerShape(8.dp))
+                        .padding(12.dp)
+                ) {
+                    Text(
+                        text = targetChinese,
+                        color = AccentGreen,
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Text(
+                    text = "Pinyin",
+                    color = SecondaryText,
+                    style = MaterialTheme.typography.titleMedium
+                )
+
+                Spacer(modifier = Modifier.height(6.dp))
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(BoxBg, RoundedCornerShape(8.dp))
+                        .border(1.dp, BorderColor, RoundedCornerShape(8.dp))
+                        .padding(12.dp)
+                ) {
+                    Text(
+                        text = targetPinyin,
+                        color = HintText,
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Text(
+                    text = "Learning Notes",
+                    color = SecondaryText,
+                    style = MaterialTheme.typography.titleMedium
+                )
+
+                Spacer(modifier = Modifier.height(6.dp))
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(BoxBg, RoundedCornerShape(8.dp))
+                        .border(1.dp, BorderColor, RoundedCornerShape(8.dp))
+                        .padding(12.dp)
+                ) {
+                    Text(
+                        text = "请先观察目标英文、中文和拼音，再点击 Start 进行录音练习。完成后系统会返回基础转写结果。",
+                        color = HintText,
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                }
+            }
+
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(0.64f)
+                    .background(PanelBg, RoundedCornerShape(8.dp))
+                    .padding(12.dp)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(64.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Feedback:",
+                        color = PrimaryText,
+                        style = MaterialTheme.typography.titleMedium,
+                        modifier = Modifier.width(90.dp)
+                    )
+
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(100.dp)
+                            .verticalScroll(rememberScrollState())
+                    ) {
+                        Text(
+                            text = feedbackText,
+                            color = AccentGreen,
+                            style = MaterialTheme.typography.bodyLarge
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
 
                 OutlinedTextField(
                     value = syllable,
                     onValueChange = { syllable = it },
-                    label = { Text("Syllable (e.g. ma)") },
+                    label = { Text("Practice Content") },
+                    placeholder = { Text("例如：ma / 妈妈 / 你好", color = HintText) },
+                    colors = appTextFieldColors(),
                     modifier = Modifier.fillMaxWidth(),
                     keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.None)
                 )
@@ -311,6 +472,7 @@ class MainActivity : ComponentActivity() {
                         onValueChange = {},
                         readOnly = true,
                         label = { Text("Tone") },
+                        colors = appTextFieldColors(),
                         modifier = Modifier
                             .menuAnchor()
                             .fillMaxWidth()
@@ -321,7 +483,7 @@ class MainActivity : ComponentActivity() {
                     ) {
                         toneOptions.forEach { tone ->
                             DropdownMenuItem(
-                                text = { Text(tone) },
+                                text = { Text(tone, color = PrimaryText) },
                                 onClick = {
                                     selectedTone = tone
                                     toneExpanded = false
@@ -331,7 +493,7 @@ class MainActivity : ComponentActivity() {
                     }
                 }
 
-                Spacer(modifier = Modifier.height(10.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
                 Button(
                     onClick = {
@@ -343,6 +505,14 @@ class MainActivity : ComponentActivity() {
                                     requestRecordPermission()
                                     return@Button
                                 }
+
+                                clearTemporaryAudioFiles()
+
+                                try {
+                                    wavRecorder?.stop()
+                                } catch (_: Exception) {
+                                }
+                                wavRecorder = null
 
                                 val outFile = File(filesDir, "recorded.wav")
                                 wavRecorder = WavRecorder(outFile)
@@ -368,6 +538,7 @@ class MainActivity : ComponentActivity() {
                                 wavRecorder = null
 
                                 if (recordedFile == null || !recordedFile.exists()) {
+                                    deleteFileSilently(recordedFile)
                                     feedbackText = "录音文件生成失败"
                                     setStatus("Error")
                                     practiceState = PracticeState.Idle
@@ -378,6 +549,7 @@ class MainActivity : ComponentActivity() {
                                     try {
                                         val modelFile = copyAssetToInternalStorage("ggml-tiny.bin")
                                         if (modelFile == null) {
+                                            deleteFileSilently(recordedFile)
                                             runOnUiThread {
                                                 feedbackText = "Model copy failed"
                                                 setStatus("Error")
@@ -393,6 +565,7 @@ class MainActivity : ComponentActivity() {
 
                                         val initOk = initModel(modelFile.absolutePath)
                                         if (!initOk) {
+                                            deleteFileSilently(recordedFile)
                                             runOnUiThread {
                                                 feedbackText = "Model init failed"
                                                 setStatus("Error")
@@ -408,12 +581,15 @@ class MainActivity : ComponentActivity() {
 
                                         val result = transcribeFile(recordedFile.absolutePath)
 
+                                        deleteFileSilently(recordedFile)
+
                                         runOnUiThread {
                                             feedbackText = result
                                             setStatus("Done")
                                             practiceState = PracticeState.Idle
                                         }
                                     } catch (e: Exception) {
+                                        deleteFileSilently(recordedFile)
                                         runOnUiThread {
                                             feedbackText = "Exception: ${e.message}"
                                             setStatus("Error")
@@ -424,7 +600,6 @@ class MainActivity : ComponentActivity() {
                             }
 
                             PracticeState.Transcribing -> {
-                                // do not allow repeat clicking during transcribing
                                 feedbackText = "Please wait, transcribing..."
                                 setStatus("Transcribing...")
                             }
@@ -441,57 +616,6 @@ class MainActivity : ComponentActivity() {
                         }
                     )
                 }
-            }
-
-            Column(
-                modifier = Modifier
-                    .weight(0.54f)
-                    .fillMaxHeight()
-                    .background(Color(0xFF1F1F24), RoundedCornerShape(8.dp))
-                    .padding(12.dp)
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(64.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "Feedback:",
-                        color = Color.White,
-                        style = MaterialTheme.typography.titleMedium,
-                        modifier = Modifier.width(90.dp)
-                    )
-                    Text(
-                        text = feedbackText,
-                        color = Color(0xFF4CE680),
-                        style = MaterialTheme.typography.bodyLarge
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                Text(
-                    text = "Pitch Contour (占位示意)",
-                    color = Color(0xFFE6EBF5),
-                    style = MaterialTheme.typography.titleSmall
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxWidth()
-                        .background(Color(0xFF26262E), RoundedCornerShape(8.dp))
-                        .border(1.dp, Color(0xFF3A3A44), RoundedCornerShape(8.dp)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "将来这里画音高曲线 / 目标曲线",
-                        color = Color(0xFFCCD6E6)
-                    )
-                }
 
                 Spacer(modifier = Modifier.height(12.dp))
 
@@ -503,6 +627,7 @@ class MainActivity : ComponentActivity() {
                     ) {
                         Text("返回")
                     }
+
                     OutlinedButton(
                         onClick = { resetState() },
                         enabled = practiceState != PracticeState.Transcribing,
@@ -515,15 +640,51 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private fun hasRecordPermission(): Boolean{
-        return checkSelfPermission(android.Manifest.permission.RECORD_AUDIO) == android.content.pm.PackageManager.PERMISSION_GRANTED
+    @Composable
+    private fun appTextFieldColors() = OutlinedTextFieldDefaults.colors(
+        focusedTextColor = PrimaryText,
+        unfocusedTextColor = PrimaryText,
+        disabledTextColor = HintText,
+        focusedContainerColor = BoxBg,
+        unfocusedContainerColor = BoxBg,
+        disabledContainerColor = BoxBg,
+        cursorColor = AccentGreen,
+        focusedBorderColor = AccentGreen,
+        unfocusedBorderColor = BorderColor,
+        disabledBorderColor = BorderColor,
+        focusedLabelColor = SecondaryText,
+        unfocusedLabelColor = HintText,
+        disabledLabelColor = HintText,
+        focusedPlaceholderColor = HintText,
+        unfocusedPlaceholderColor = HintText,
+        disabledPlaceholderColor = HintText
+    )
+
+    private fun hasRecordPermission(): Boolean {
+        return checkSelfPermission(android.Manifest.permission.RECORD_AUDIO) ==
+                android.content.pm.PackageManager.PERMISSION_GRANTED
     }
 
-    private fun requestRecordPermission(){
+    private fun requestRecordPermission() {
         requestPermissions(
             arrayOf(android.Manifest.permission.RECORD_AUDIO),
             recordPermissionCode
         )
+    }
+
+    private fun deleteFileSilently(file: File?) {
+        if (file == null) return
+        try {
+            if (file.exists()) {
+                file.delete()
+            }
+        } catch (_: Exception) {
+        }
+    }
+
+    private fun clearTemporaryAudioFiles() {
+        deleteFileSilently(File(filesDir, "recorded.wav"))
+        deleteFileSilently(File(filesDir, "test_short.wav"))
     }
 
     private fun copyAssetToInternalStorage(fileName: String): File? {
