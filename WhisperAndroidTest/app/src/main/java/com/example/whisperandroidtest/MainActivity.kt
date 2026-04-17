@@ -28,6 +28,12 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    enum class PracticeState{
+        Idle,
+        Recording,
+        Transcribing
+    }
+
     external fun stringFromJNI(): String
     external fun initModel(modelPath: String): Boolean
     external fun transcribeFile(wavPath: String): String
@@ -230,13 +236,23 @@ class MainActivity : ComponentActivity() {
         var syllable by remember { mutableStateOf("") }
         var selectedTone by remember { mutableStateOf("Tone 1") }
         var feedbackText by remember { mutableStateOf("Idle") }
-        var running by remember { mutableStateOf(false) }
+        var practiceState by remember { mutableStateOf(PracticeState.Idle) }
 
         val toneOptions = listOf("Tone 1", "Tone 2", "Tone 3", "Tone 4")
         var toneExpanded by remember { mutableStateOf(false) }
 
         fun resetState() {
-            running = false
+            if (practiceState == PracticeState.Transcribing){
+                return
+            }
+
+            try{
+                wavRecorder?.stop()
+            }catch (_: Exception){
+            }
+            wavRecorder = null
+
+            practiceState = PracticeState.Idle
             feedbackText = "Idle"
             setStatus("Ready")
         }
@@ -319,79 +335,111 @@ class MainActivity : ComponentActivity() {
 
                 Button(
                     onClick = {
-                        if (!running) {
-                            if (!hasRecordPermission()) {
-                                feedbackText = "Need record permission"
-                                setStatus("Requesting permission...")
-                                requestRecordPermission()
-                                return@Button
+                        when (practiceState) {
+                            PracticeState.Idle -> {
+                                if (!hasRecordPermission()) {
+                                    feedbackText = "需要录音权限"
+                                    setStatus("Requesting permission...")
+                                    requestRecordPermission()
+                                    return@Button
+                                }
+
+                                val outFile = File(filesDir, "recorded.wav")
+                                wavRecorder = WavRecorder(outFile)
+
+                                val started = wavRecorder?.start() == true
+                                if (started) {
+                                    practiceState = PracticeState.Recording
+                                    feedbackText = "Recording..."
+                                    setStatus("Recording...")
+                                } else {
+                                    feedbackText = "录音启动失败"
+                                    setStatus("Error")
+                                    practiceState = PracticeState.Idle
+                                }
                             }
 
-                            val outFile = File(filesDir, "recorded.wav")
-                            wavRecorder = WavRecorder(outFile)
+                            PracticeState.Recording -> {
+                                practiceState = PracticeState.Transcribing
+                                feedbackText = "Stopping recording..."
+                                setStatus("Processing...")
 
-                            val started = wavRecorder?.start() == true
-                            if (started) {
-                                running = true
-                                feedbackText = "Recording..."
-                                setStatus("Recording...")
-                            } else {
-                                feedbackText = "Record start failed"
-                                setStatus("Error")
-                            }
-                        } else {
-                            running = false
-                            setStatus("Processing...")
+                                val recordedFile = wavRecorder?.stop()
+                                wavRecorder = null
 
-                            val recordedFile = wavRecorder?.stop()
-                            wavRecorder = null
+                                if (recordedFile == null || !recordedFile.exists()) {
+                                    feedbackText = "录音文件生成失败"
+                                    setStatus("Error")
+                                    practiceState = PracticeState.Idle
+                                    return@Button
+                                }
 
-                            if (recordedFile == null || !recordedFile.exists()) {
-                                feedbackText = "Record file storage failed"
-                                setStatus("Error")
-                                return@Button
-                            }
-
-                            thread {
-                                try {
-                                    val modelFile = copyAssetToInternalStorage("ggml-tiny.bin")
-                                    if (modelFile == null) {
-                                        runOnUiThread {
-                                            feedbackText = "Model copy failed"
-                                            setStatus("Error")
+                                thread {
+                                    try {
+                                        val modelFile = copyAssetToInternalStorage("ggml-tiny.bin")
+                                        if (modelFile == null) {
+                                            runOnUiThread {
+                                                feedbackText = "Model copy failed"
+                                                setStatus("Error")
+                                                practiceState = PracticeState.Idle
+                                            }
+                                            return@thread
                                         }
-                                        return@thread
-                                    }
 
-                                    runOnUiThread { setStatus("Loading model...") }
-                                    val initOk = initModel(modelFile.absolutePath)
-                                    if (!initOk) {
                                         runOnUiThread {
-                                            feedbackText = "Model init failed"
-                                            setStatus("Error")
+                                            setStatus("Loading model...")
+                                            feedbackText = "Loading model..."
                                         }
-                                        return@thread
-                                    }
 
-                                    runOnUiThread { setStatus("Transcribing...") }
-                                    val result = transcribeFile(recordedFile.absolutePath)
+                                        val initOk = initModel(modelFile.absolutePath)
+                                        if (!initOk) {
+                                            runOnUiThread {
+                                                feedbackText = "Model init failed"
+                                                setStatus("Error")
+                                                practiceState = PracticeState.Idle
+                                            }
+                                            return@thread
+                                        }
 
-                                    runOnUiThread {
-                                        feedbackText = result
-                                        setStatus("Done")
-                                    }
-                                } catch (e: Exception) {
-                                    runOnUiThread {
-                                        feedbackText = "Exception: ${e.message}"
-                                        setStatus("Error")
+                                        runOnUiThread {
+                                            setStatus("Transcribing...")
+                                            feedbackText = "Transcribing..."
+                                        }
+
+                                        val result = transcribeFile(recordedFile.absolutePath)
+
+                                        runOnUiThread {
+                                            feedbackText = result
+                                            setStatus("Done")
+                                            practiceState = PracticeState.Idle
+                                        }
+                                    } catch (e: Exception) {
+                                        runOnUiThread {
+                                            feedbackText = "Exception: ${e.message}"
+                                            setStatus("Error")
+                                            practiceState = PracticeState.Idle
+                                        }
                                     }
                                 }
                             }
+
+                            PracticeState.Transcribing -> {
+                                // do not allow repeat clicking during transcribing
+                                feedbackText = "Please wait, transcribing..."
+                                setStatus("Transcribing...")
+                            }
                         }
                     },
+                    enabled = practiceState != PracticeState.Transcribing,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text(if (running) "Stop" else "Start")
+                    Text(
+                        when (practiceState) {
+                            PracticeState.Idle -> "Start"
+                            PracticeState.Recording -> "Stop"
+                            PracticeState.Transcribing -> "Processing..."
+                        }
+                    )
                 }
             }
 
@@ -448,11 +496,16 @@ class MainActivity : ComponentActivity() {
                 Spacer(modifier = Modifier.height(12.dp))
 
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Button(onClick = onBack, modifier = Modifier.weight(1f)) {
+                    Button(
+                        onClick = onBack,
+                        enabled = practiceState != PracticeState.Transcribing,
+                        modifier = Modifier.weight(1f)
+                    ) {
                         Text("返回")
                     }
                     OutlinedButton(
                         onClick = { resetState() },
+                        enabled = practiceState != PracticeState.Transcribing,
                         modifier = Modifier.weight(1f)
                     ) {
                         Text("重置")
