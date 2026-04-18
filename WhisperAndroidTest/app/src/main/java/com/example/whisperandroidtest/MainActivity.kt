@@ -44,6 +44,61 @@ class MainActivity : ComponentActivity() {
         Transcribing
     }
 
+    data class CharInfo(
+        val hanzi: String,
+        val pinyin: String,
+        val tone: Int
+    )
+
+    enum class CompareStatus{
+        Correct,
+        ToneMismatch,
+        PronMismatch,
+        Missing,
+        Extra
+    }
+
+    data class CompareItem(
+        val targetChar: String?,
+        val recognizedChar: String?,
+        val status: CompareStatus,
+        val message: String
+    )
+
+    data class LearningTarget(
+        val english: String,
+        val chinese: String,
+        val pinyin: String
+    )
+
+    private val charMap = mapOf(
+        "你" to CharInfo("你", "ni", 3),
+        "好" to CharInfo("好", "hao", 3),
+        "妈" to CharInfo("妈", "ma", 1),
+        "麻" to CharInfo("麻", "ma", 2),
+        "马" to CharInfo("马", "ma", 3),
+        "骂" to CharInfo("骂", "ma", 4),
+        "我" to CharInfo("我", "wo", 3),
+        "喜" to CharInfo("喜", "xi", 3),
+        "欢" to CharInfo("欢", "huan", 1),
+        "汉" to CharInfo("汉", "han", 4),
+        "语" to CharInfo("语", "yu", 3),
+        "谢" to CharInfo("谢", "xie", 4),
+        "中" to CharInfo("中", "zhong", 1),
+        "国" to CharInfo("国", "guo", 2),
+        "学" to CharInfo("学", "xue", 2),
+        "习" to CharInfo("习", "xi", 2)
+    )
+
+    private val englishTargetMap = mapOf(
+        "hello" to LearningTarget("hello", "你好", "nǐ hǎo"),
+        "thank you" to LearningTarget("thank you", "谢谢", "xiè xie"),
+        "mother" to LearningTarget("mother", "妈妈", "mā ma"),
+        "china" to LearningTarget("china", "中国", "zhōng guó"),
+        "study" to LearningTarget("study", "学习", "xué xí"),
+        "i like chinese" to LearningTarget("I like Chinese", "我喜欢汉语", "wǒ xǐ huān hàn yǔ")
+    )
+
     external fun stringFromJNI(): String
     external fun initModel(modelPath: String): Boolean
     external fun transcribeFile(wavPath: String): String
@@ -279,9 +334,10 @@ class MainActivity : ComponentActivity() {
         setStatus: (String) -> Unit,
         onBack: () -> Unit
     ) {
-        var syllable by remember { mutableStateOf("") }
+        var englishInput by remember { mutableStateOf("hello") }
         var selectedTone by remember { mutableStateOf("Tone 1") }
         var feedbackText by remember { mutableStateOf("Idle") }
+        var correctionText by remember { mutableStateOf("暂无纠错结果") }
         var practiceState by remember { mutableStateOf(PracticeState.Idle) }
 
         var targetEnglish by remember { mutableStateOf("hello") }
@@ -290,6 +346,20 @@ class MainActivity : ComponentActivity() {
 
         val toneOptions = listOf("Tone 1", "Tone 2", "Tone 3", "Tone 4")
         var toneExpanded by remember { mutableStateOf(false) }
+
+        fun updateTargetFromEnglish(input: String) {
+            val key = input.trim().lowercase()
+            val matched = englishTargetMap[key]
+            if (matched != null) {
+                targetEnglish = matched.english
+                targetChinese = matched.chinese
+                targetPinyin = matched.pinyin
+            } else {
+                targetEnglish = input
+                targetChinese = "未收录该英文目标"
+                targetPinyin = "-"
+            }
+        }
 
         fun resetState() {
             if (practiceState == PracticeState.Transcribing) return
@@ -302,6 +372,7 @@ class MainActivity : ComponentActivity() {
 
             practiceState = PracticeState.Idle
             feedbackText = "Idle"
+            correctionText = "暂无纠错结果"
             setStatus("Ready")
         }
 
@@ -309,24 +380,21 @@ class MainActivity : ComponentActivity() {
             modifier = Modifier
                 .fillMaxSize()
                 .background(AppBg)
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+                .padding(16.dp)
         ) {
             Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(0.36f)
+                    .fillMaxSize()
                     .background(PanelBg, RoundedCornerShape(8.dp))
                     .padding(12.dp)
-                    .verticalScroll(rememberScrollState())
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Text(
-                    text = "Target English",
-                    color = SecondaryText,
+                    text = "Learning Target",
+                    color = PrimaryText,
                     style = MaterialTheme.typography.titleMedium
                 )
-
-                Spacer(modifier = Modifier.height(6.dp))
 
                 Box(
                     modifier = Modifier
@@ -335,62 +403,24 @@ class MainActivity : ComponentActivity() {
                         .border(1.dp, BorderColor, RoundedCornerShape(8.dp))
                         .padding(12.dp)
                 ) {
-                    Text(
-                        text = targetEnglish,
-                        color = PrimaryText,
-                        style = MaterialTheme.typography.bodyLarge
-                    )
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(
+                            text = "English: $targetEnglish",
+                            color = PrimaryText,
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                        Text(
+                            text = "Chinese: $targetChinese",
+                            color = AccentGreen,
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                        Text(
+                            text = "Pinyin: $targetPinyin",
+                            color = HintText,
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
                 }
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Text(
-                    text = "Target Chinese",
-                    color = SecondaryText,
-                    style = MaterialTheme.typography.titleMedium
-                )
-
-                Spacer(modifier = Modifier.height(6.dp))
-
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(BoxBg, RoundedCornerShape(8.dp))
-                        .border(1.dp, BorderColor, RoundedCornerShape(8.dp))
-                        .padding(12.dp)
-                ) {
-                    Text(
-                        text = targetChinese,
-                        color = AccentGreen,
-                        style = MaterialTheme.typography.bodyLarge
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                Text(
-                    text = "Pinyin",
-                    color = SecondaryText,
-                    style = MaterialTheme.typography.titleMedium
-                )
-
-                Spacer(modifier = Modifier.height(6.dp))
-
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(BoxBg, RoundedCornerShape(8.dp))
-                        .border(1.dp, BorderColor, RoundedCornerShape(8.dp))
-                        .padding(12.dp)
-                ) {
-                    Text(
-                        text = targetPinyin,
-                        color = HintText,
-                        style = MaterialTheme.typography.bodyLarge
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(12.dp))
 
                 Text(
                     text = "Learning Notes",
@@ -398,8 +428,6 @@ class MainActivity : ComponentActivity() {
                     style = MaterialTheme.typography.titleMedium
                 )
 
-                Spacer(modifier = Modifier.height(6.dp))
-
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -408,60 +436,68 @@ class MainActivity : ComponentActivity() {
                         .padding(12.dp)
                 ) {
                     Text(
-                        text = "请先观察目标英文、中文和拼音，再点击 Start 进行录音练习。完成后系统会返回基础转写结果。",
+                        text = "请先输入英文目标，系统会自动生成中文与拼音。然后点击 Start 进行录音练习。完成后系统会返回基础转写与纠错结果。",
                         color = HintText,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+
+                Text(
+                    text = "Feedback",
+                    color = PrimaryText,
+                    style = MaterialTheme.typography.titleMedium
+                )
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(100.dp)
+                        .background(BoxBg, RoundedCornerShape(8.dp))
+                        .border(1.dp, BorderColor, RoundedCornerShape(8.dp))
+                        .padding(12.dp)
+                        .verticalScroll(rememberScrollState())
+                ) {
+                    Text(
+                        text = feedbackText,
+                        color = AccentGreen,
                         style = MaterialTheme.typography.bodyLarge
                     )
                 }
-            }
 
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(0.64f)
-                    .background(PanelBg, RoundedCornerShape(8.dp))
-                    .padding(12.dp)
-            ) {
-                Row(
+                Text(
+                    text = "Correction Result",
+                    color = PrimaryText,
+                    style = MaterialTheme.typography.titleMedium
+                )
+
+                Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(64.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                        .height(140.dp)
+                        .background(BoxBg, RoundedCornerShape(8.dp))
+                        .border(1.dp, BorderColor, RoundedCornerShape(8.dp))
+                        .padding(12.dp)
+                        .verticalScroll(rememberScrollState())
                 ) {
                     Text(
-                        text = "Feedback:",
-                        color = PrimaryText,
-                        style = MaterialTheme.typography.titleMedium,
-                        modifier = Modifier.width(90.dp)
+                        text = correctionText,
+                        color = SecondaryText,
+                        style = MaterialTheme.typography.bodyMedium
                     )
-
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(100.dp)
-                            .verticalScroll(rememberScrollState())
-                    ) {
-                        Text(
-                            text = feedbackText,
-                            color = AccentGreen,
-                            style = MaterialTheme.typography.bodyLarge
-                        )
-                    }
                 }
 
-                Spacer(modifier = Modifier.height(12.dp))
-
                 OutlinedTextField(
-                    value = syllable,
-                    onValueChange = { syllable = it },
-                    label = { Text("Practice Content") },
-                    placeholder = { Text("例如：ma / 妈妈 / 你好", color = HintText) },
+                    value = englishInput,
+                    onValueChange = {
+                        englishInput = it
+                        updateTargetFromEnglish(it)
+                    },
+                    label = { Text("English Input") },
+                    placeholder = { Text("例如：hello / thank you / I like Chinese", color = HintText) },
                     colors = appTextFieldColors(),
                     modifier = Modifier.fillMaxWidth(),
                     keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.None)
                 )
-
-                Spacer(modifier = Modifier.height(10.dp))
 
                 ExposedDropdownMenuBox(
                     expanded = toneExpanded,
@@ -493,8 +529,6 @@ class MainActivity : ComponentActivity() {
                     }
                 }
 
-                Spacer(modifier = Modifier.height(12.dp))
-
                 Button(
                     onClick = {
                         when (practiceState) {
@@ -503,6 +537,13 @@ class MainActivity : ComponentActivity() {
                                     feedbackText = "需要录音权限"
                                     setStatus("Requesting permission...")
                                     requestRecordPermission()
+                                    return@Button
+                                }
+
+                                if (targetChinese.isBlank() || targetChinese == "未收录该英文目标") {
+                                    feedbackText = "请先输入已收录的英文目标"
+                                    correctionText = "暂无纠错结果"
+                                    setStatus("Target not found")
                                     return@Button
                                 }
 
@@ -580,11 +621,14 @@ class MainActivity : ComponentActivity() {
                                         }
 
                                         val result = transcribeFile(recordedFile.absolutePath)
+                                        val compareItems = compareChinese(targetChinese, result)
+                                        val compareText = formatCompareResult(compareItems)
 
                                         deleteFileSilently(recordedFile)
 
                                         runOnUiThread {
                                             feedbackText = result
+                                            correctionText = compareText
                                             setStatus("Done")
                                             practiceState = PracticeState.Idle
                                         }
@@ -592,6 +636,7 @@ class MainActivity : ComponentActivity() {
                                         deleteFileSilently(recordedFile)
                                         runOnUiThread {
                                             feedbackText = "Exception: ${e.message}"
+                                            correctionText = "暂无纠错结果"
                                             setStatus("Error")
                                             practiceState = PracticeState.Idle
                                         }
@@ -617,8 +662,6 @@ class MainActivity : ComponentActivity() {
                     )
                 }
 
-                Spacer(modifier = Modifier.height(12.dp))
-
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     Button(
                         onClick = onBack,
@@ -629,7 +672,13 @@ class MainActivity : ComponentActivity() {
                     }
 
                     OutlinedButton(
-                        onClick = { resetState() },
+                        onClick = {
+                            englishInput = "hello"
+                            targetEnglish = "hello"
+                            targetChinese = "你好"
+                            targetPinyin = "nǐ hǎo"
+                            resetState()
+                        },
                         enabled = practiceState != PracticeState.Transcribing,
                         modifier = Modifier.weight(1f)
                     ) {
@@ -700,5 +749,110 @@ class MainActivity : ComponentActivity() {
             e.printStackTrace()
             null
         }
+    }
+
+    private fun compareChinese(target: String, recognized: String): List<CompareItem> {
+        val targetChars = target.map { it.toString() }
+        val recognizedChars = recognized.map { it.toString() }
+
+        val maxLen = maxOf(targetChars.size, recognizedChars.size)
+        val results = mutableListOf<CompareItem>()
+
+        for (i in 0 until maxLen) {
+            val t: String? = targetChars.getOrNull(i)
+            val r: String? = recognizedChars.getOrNull(i)
+
+            when {
+                t != null && r == null -> {
+                    results.add(
+                        CompareItem(
+                            targetChar = t,
+                            recognizedChar = null,
+                            status = CompareStatus.Missing,
+                            message = "$t：漏读"
+                        )
+                    )
+                }
+
+                t == null && r != null -> {
+                    results.add(
+                        CompareItem(
+                            targetChar = null,
+                            recognizedChar = r,
+                            status = CompareStatus.Extra,
+                            message = "$r：多读"
+                        )
+                    )
+                }
+
+                t != null && r != null -> {
+                    if (t == r) {
+                        results.add(
+                            CompareItem(
+                                targetChar = t,
+                                recognizedChar = r,
+                                status = CompareStatus.Correct,
+                                message = "$t：正确"
+                            )
+                        )
+                    } else {
+                        val tInfo = charMap[t]
+                        val rInfo = charMap[r]
+
+                        if (tInfo != null && rInfo != null) {
+                            when {
+                                tInfo.pinyin == rInfo.pinyin && tInfo.tone == rInfo.tone -> {
+                                    results.add(
+                                        CompareItem(
+                                            targetChar = t,
+                                            recognizedChar = r,
+                                            status = CompareStatus.Correct,
+                                            message = "$t/$r：同音同调，判定正确"
+                                        )
+                                    )
+                                }
+
+                                tInfo.pinyin == rInfo.pinyin && tInfo.tone != rInfo.tone -> {
+                                    results.add(
+                                        CompareItem(
+                                            targetChar = t,
+                                            recognizedChar = r,
+                                            status = CompareStatus.ToneMismatch,
+                                            message = "$r：声调错误，目标“$t”应为第 ${tInfo.tone} 声"
+                                        )
+                                    )
+                                }
+
+                                else -> {
+                                    results.add(
+                                        CompareItem(
+                                            targetChar = t,
+                                            recognizedChar = r,
+                                            status = CompareStatus.PronMismatch,
+                                            message = "$r：发音错误，目标应为“$t”"
+                                        )
+                                    )
+                                }
+                            }
+                        } else {
+                            results.add(
+                                CompareItem(
+                                    targetChar = t,
+                                    recognizedChar = r,
+                                    status = CompareStatus.PronMismatch,
+                                    message = "$r：无法匹配拼音，按错误处理，目标应为“$t”"
+                                )
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        return results
+    }
+
+    private fun formatCompareResult(items: List<CompareItem>): String {
+        return items.joinToString("\n") { it.message }
     }
 }
