@@ -540,12 +540,12 @@ class MainActivity : ComponentActivity() {
                                     return@Button
                                 }
 
-                                if (targetChinese.isBlank() || targetChinese == "未收录该英文目标") {
-                                    feedbackText = "请先输入已收录的英文目标"
-                                    correctionText = "暂无纠错结果"
-                                    setStatus("Target not found")
-                                    return@Button
-                                }
+//                                if (targetChinese.isBlank() || targetChinese == "未收录该英文目标") {
+//                                    feedbackText = "请先输入已收录的英文目标"
+//                                    correctionText = "暂无纠错结果"
+//                                    setStatus("Target not found")
+//                                    return@Button
+//                                }
 
                                 clearTemporaryAudioFiles()
 
@@ -621,14 +621,20 @@ class MainActivity : ComponentActivity() {
                                         }
 
                                         val result = transcribeFile(recordedFile.absolutePath)
-                                        val compareItems = compareChinese(targetChinese, result)
-                                        val compareText = formatCompareResult(compareItems)
+                                        val compareItems = if (
+                                            targetChinese.isBlank() || targetChinese == "未收录该英文目标"
+                                        ){
+                                            "当前没有可用的目标中文，已经跳过纠错。"
+                                        } else {
+                                            val compareText = compareChinese(targetChinese, result)
+                                            formatCompareResult(compareText)
+                                        }
 
                                         deleteFileSilently(recordedFile)
 
                                         runOnUiThread {
                                             feedbackText = result
-                                            correctionText = compareText
+//                                            correctionText = compareText
                                             setStatus("Done")
                                             practiceState = PracticeState.Idle
                                         }
